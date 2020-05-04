@@ -1,0 +1,166 @@
+{
+  "app": {
+    "geometry": "720x480",
+    "fullscreen": false
+  },
+
+  "workers":{
+    "power-worker": {
+      "source": { "type": "built-in", "name":  "power-worker"},
+      "is-abstract": false,
+      "config": {
+        "mqtt": {
+          "broker": "192.168.1.150",
+          "topic": "/megatron/electricityticker/tickperiod"
+        }
+      }
+    },
+
+    "cumulative-power-worker": {
+      "source": { "type": "built-in", "name":  "cumulative-power-worker"},
+      "is-abstract": true,
+      "require-workers": ["power-worker"],
+      "config": {}
+    },
+
+    "cumulative-power-worker-minute": {
+      "extends": "cumulative-power-worker",
+      "is-abstract": false,
+      "config": {
+        "reset-mode": "minute"
+      }
+    },
+    "cumulative-power-worker-hour": {
+      "extends": "cumulative-power-worker",
+      "is-abstract": false,
+      "config": {
+        "reset-mode": "hour"
+      }
+    },
+    "cumulative-power-worker-day": {
+      "extends": "cumulative-power-worker",
+      "is-abstract": false,
+      "config": {
+        "reset-mode": "day"
+      }
+    },
+
+    "temperature-worker": {
+      "source": {
+        "type": "built-in",
+        "name": "temperature-worker"
+      },
+      "is-abstract": false,
+      "config": {
+        "mqtt": {
+          "broker": "192.168.1.150",
+          "topic": "/megatron/temperature"
+        }
+      }
+    }
+  },
+
+  "widgets": {
+    "nominal-power": {
+      "source": "built-in",
+      "type": "nominal_power",
+      "require_workers": [{"worker-name": "power-worker"}],
+      "config": {
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 90
+      }
+    },
+    "cumulative-power-hour": {
+      "source": "built-in",
+      "type": "cumulative_power",
+      "require_workers": [{"worker-name": "cumulative-power-worker-hour", "worker-alias": "cumulative-power-worker"}],
+      "config": {
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 60,
+        "titlefontsize": 40
+      }
+    },
+     "cumulative-power-day": {
+      "source": "built-in",
+      "type": "cumulative_power",
+      "require_workers": [{"worker-name": "cumulative-power-worker-day", "worker-alias": "cumulative-power-worker"}],
+      "config": {
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 60,
+        "titlefontsize": 40
+      }
+    },
+
+    "temperature-outside": {
+      "source": "built-in",
+      "type": "temperature",
+      "require_workers": [{"worker-name":  "temperature-worker", "worker-alias": "temperature-worker"}],
+      "config": {
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 40,
+        "titlefontsize": 40
+      }
+    },
+    "local_time": {
+      "source": "built-in",
+      "type": "current_time",
+      "require_workers": [],
+      "config": {
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 40,
+        "time_format": ""
+      }
+    }
+  },
+
+  "pages": [
+    {
+      "name": "Main page",
+      "widgets": [
+        {
+          "name": "local_time"
+        },
+        {
+          "name": "nominal-power"
+        },
+        {
+          "name": "cumulative-power-hour",
+          "config": {
+            "title": "Timmens förbrukning"
+          }
+        },
+        {
+          "name": "temperature-outside",
+          "config": {
+            "title": "Ute-temperatur"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Power page",
+      "widgets": [
+        {
+          "name": "nominal-power"
+        },
+        {
+          "name": "cumulative-power-hour",
+          "config": {
+            "title": "Timmens förbrukning"
+          }
+        },
+        {
+          "name": "cumulative-power-day",
+          "config": {
+            "title": "Dagens förbrukning"
+          }
+        }
+      ]
+    }
+  ]
+}

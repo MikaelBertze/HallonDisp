@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 from loguru import logger
-from tkinter import Tk, Button, Frame, PhotoImage
+from tkinter import Tk, Button, Frame, PhotoImage, LEFT
 from rx.subject import Subject
 from hallondisp.factories import WidgetFactory, WorkerFactory
 
@@ -32,15 +32,15 @@ class MainApp(Tk):
         self.config(bg="#333")
 
         Button(self, bg="#333", fg="#333", activebackground='#333', image=self.left_img, highlightthickness=0, bd=0,
-               padx=50,
+               width=110,
                command=lambda: self.next_frame(False)).pack(side="left", fill="y")
 
         Button(self, bg="#333", fg="#333", activebackground='#333', image=self.right_img,  highlightthickness=0, bd=0,
-               padx=50,
+               width=110,
                command=lambda: self.next_frame(True)).pack(side="right", fill="y")
 
         self.container = Frame(self)
-        self.container.pack(side="top", fill="both", expand=True)
+        self.container.pack(side="top", fill="both", expand=True, ipadx=50)
         self.container.grid_rowconfigure(0, weight=1)
         self.container.grid_columnconfigure(0, weight=1)
 

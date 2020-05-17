@@ -54,6 +54,7 @@ class WidgetFactory:
         'nominal_power': CurrentPower,
         'cumulative_power': CumulativePower,
         'temperature': TemperatureWidget,
+        "timer": TimerWidget,
     }
 
     def __init__(self, widget_configs, worker_factory: WorkerFactory):

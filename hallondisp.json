@@ -115,6 +115,18 @@
         "fontsize": 40,
         "time_format": ""
       }
+    },
+
+    "timer": {
+      "source": "built-in",
+      "type": "timer",
+      "require_workers": [],
+      "config": {
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 40,
+        "duration": 0
+      }
     }
   },
 
@@ -158,6 +170,18 @@
           "name": "cumulative-power-day",
           "config": {
             "title": "Dagens förbrukning"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Timer page",
+      "widgets": [
+        {
+          "name": "timer",
+          "config": {
+            "title": "En minut",
+            "duration": 60
           }
         }
       ]

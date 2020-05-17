@@ -112,7 +112,7 @@
       "config": {
         "background": "#333",
         "foreground": "#fff",
-        "fontsize": 70,
+        "fontsize": 50,
         "time_format": ""
       }
     },

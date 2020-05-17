@@ -34,7 +34,7 @@ class CurrentTimeWidget(HallonWidget):
                                  textvariable=self.clockValue,
                                  bg=config['background'],
                                  fg=config['foreground'],
-                                 font=("Courier", config['fontsize'], "bold"))
+                                 font=("DejaVu Sans", config['fontsize'], "bold"))
         self.clock_label.pack()
         self.update()
 
@@ -68,7 +68,7 @@ class TimerWidget(HallonWidget):
                              fg=config['foreground'],
                              activebackground=config['background'],
                              activeforeground=config['foreground'],
-                             font=("Courier", config['fontsize'], "bold"),
+                             font=("DejaVu Sans", config['fontsize'], "bold"),
                              command=lambda: self.toggle(),
                              pady=30,
                              highlightthickness=0, bd=0)
@@ -138,13 +138,13 @@ class TemperatureWidget(HallonWidget):
               text=config['title'],
               bg=config['background'],
               fg=config['foreground'],
-              font=("Courier", config['titlefontsize'], "bold")).pack()
+              font=("DejaVu Sans", config['titlefontsize'], "bold")).pack()
 
         self.temperature_label = Label(self,
                                  textvariable=self.temperatureValue,
                                  bg=config['background'],
                                  fg=config['foreground'],
-                                 font=("Courier", config['fontsize'], "bold"))
+                                 font=("DejaVu Sans", config['fontsize'], "bold"))
         self.temperature_label.pack()
 
         worker: TemperatureWorker = self.get_worker('temperature-worker')
@@ -163,7 +163,7 @@ class CurrentPower(HallonWidget):
                                  textvariable=self.powerValue,
                                  bg=config['background'],
                                  fg=config['foreground'],
-                                 font=("Courier", config['fontsize'], "bold"))
+                                 font=("DejaVu Sans", config['fontsize'], "bold"))
         self.power_label.pack()
 
         worker: PowerWorker = self.get_worker('power-worker')
@@ -191,13 +191,13 @@ class CumulativePower(HallonWidget):
               text=config['title'],
               bg=config['background'],
               fg=config['foreground'],
-              font=("Courier", config['titlefontsize'], "bold")).pack()
+              font=("DejaVu Sans", config['titlefontsize'], "bold")).pack()
 
         self.power_label = Label(self,
                                  textvariable=self.powerValue,
                                  bg=config['background'],
                                  fg=config['foreground'],
-                                 font=("Courier", config['fontsize'], "bold"))
+                                 font=("DejaVu Sans", config['fontsize'], "bold"))
         self.power_label.pack()
         worker: CumulativePowerWorker = self.get_worker('cumulative-power-worker')
         worker.whenUsageReported.subscribe(lambda x: self.handle_update(x))

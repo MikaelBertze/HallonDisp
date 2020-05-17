@@ -1,6 +1,6 @@
 {
   "app": {
-    "geometry": "720x460",
+    "geometry": "720x480",
     "fullscreen": false
   },
 
@@ -68,7 +68,7 @@
       "config": {
         "background": "#333",
         "foreground": "#fff",
-        "fontsize": 90
+        "fontsize": 80
       }
     },
     "cumulative-power-hour": {

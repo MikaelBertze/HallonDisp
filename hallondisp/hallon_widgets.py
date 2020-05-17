@@ -72,9 +72,6 @@ class TimerWidget(HallonWidget):
                              command=lambda: self.toggle(),
                              pady=30,
                              highlightthickness=0, bd=0)
-        #self.grid_rowconfigure(0, weight=1)
-        #self.grid_columnconfigure(0, weight=1)
-        #self.button.grid(column=0, row=0, sticky='nesw')
         self.button.pack()
         self.reset()
 
@@ -93,7 +90,7 @@ class TimerWidget(HallonWidget):
         self.mode = "running"
         self.start_time = time.time()
         self.tick()
-        self.button.config(bg="#335", activebackground='#335')
+        self.button.config(bg="#FFD700", activebackground='#FFD700')
 
     def toggle(self):
         logger.info("toggle")

@@ -79,7 +79,7 @@
         "background": "#333",
         "foreground": "#fff",
         "fontsize": 60,
-        "titlefontsize": 40
+        "titlefontsize": 30
       }
     },
      "cumulative-power-day": {
@@ -90,7 +90,7 @@
         "background": "#333",
         "foreground": "#fff",
         "fontsize": 60,
-        "titlefontsize": 40
+        "titlefontsize": 30
       }
     },
 
@@ -101,8 +101,8 @@
       "config": {
         "background": "#333",
         "foreground": "#fff",
-        "fontsize": 40,
-        "titlefontsize": 40
+        "fontsize": 60,
+        "titlefontsize": 30
       }
     },
     "local_time": {
@@ -112,7 +112,7 @@
       "config": {
         "background": "#333",
         "foreground": "#fff",
-        "fontsize": 40,
+        "fontsize": 70,
         "time_format": ""
       }
     },
@@ -124,7 +124,7 @@
       "config": {
         "background": "#333",
         "foreground": "#fff",
-        "fontsize": 40,
+        "fontsize": 30,
         "duration": 0
       }
     }
@@ -180,8 +180,22 @@
         {
           "name": "timer",
           "config": {
-            "title": "En minut",
-            "duration": 60
+            "title": "Koka ägg",
+            "duration": 405
+          }
+        },
+        {
+          "name": "timer",
+          "config": {
+            "title": "Baka bröd",
+            "duration": 600
+          }
+        },
+        {
+          "name": "timer",
+          "config": {
+            "title": "Penne",
+            "duration": 660
           }
         }
       ]

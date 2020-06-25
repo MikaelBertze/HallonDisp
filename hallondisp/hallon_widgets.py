@@ -132,7 +132,11 @@ class TemperatureWidget(HallonWidget):
         HallonWidget.__init__(self, parent, workers)
         self.config(bg=config['background'])
         self.temperatureValue = StringVar()
+        self.min_tempValue = StringVar()
+        self.max_tempValue = StringVar()
         self.temperatureValue.set("---")
+        self.min_tempValue.set("---")
+        self.max_tempValue.set("---")
 
         Label(self,
               text=config['title'],
@@ -149,9 +153,44 @@ class TemperatureWidget(HallonWidget):
 
         worker: TemperatureWorker = self.get_worker('temperature-worker')
         worker.whenTemperatureReported.subscribe(lambda x: self.handle_update(x))
+        worker.whenMinMaxModified.subscribe(lambda x: self.handle_min_max_update(x))
 
     def handle_update(self, update):
         self.temperatureValue.set("{:.1f}°C".format(update))
+
+    def handle_min_max_update(self, min_max):
+        self.min_tempValue.set("{:.1f}°C".format(min_max[0]))
+        self.max_tempValue.set("{:.1f}°C".format(min_max[1]))
+
+
+class DoorWidget(HallonWidget):
+    def __init__(self, parent, config, workers):
+        HallonWidget.__init__(self, parent, workers)
+        self.door_id = config['door-id']
+        self.config = config;
+        #self.doorValue = StringVar()
+        #self.doorValue.set("---")
+        self.door_label = Label(self,
+                                text=config['title'],
+                                bg='yellow',
+                                fg=config['true_foreground'],
+                                font=("DejaVu Sans", config['fontsize'], "bold"))
+        self.door_label.pack()
+
+        worker: PowerWorker = self.get_worker('door-worker')
+        worker.whenDoorReported.subscribe(lambda x: self.handle_update(x))
+
+    def handle_update(self, update):
+        if update['id'] == self.door_id:
+            if update['door']:
+                self.door_label.config(fg=self.config['true_foreground'], bg=self.config['true_background'], activebackground=self.config['true_background'])
+            else:
+                self.door_label.config(fg=self.config['false_foreground'], bg=self.config['false_background'], activebackground=self.config['false_background'])
+
+
+    @staticmethod
+    def hallon_size():
+        return 1, 4
 
 
 class CurrentPower(HallonWidget):

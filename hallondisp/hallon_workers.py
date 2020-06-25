@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 import re
 from datetime import datetime
 from threading import Timer
@@ -24,6 +25,24 @@ class HallonWorker:
     def _init_worker(self):
         raise NotImplementedError("You should implement this...")
 
+class DoorWorker(HallonWorker):
+    def __init__(self, config, workers):
+        HallonWorker.__init__(self, config, workers)
+        self.whenDoorReported = Subject()
+        self.mqtt_updater = MqttListener(config['mqtt']['broker'], config['mqtt']['topic'])
+        self.mqtt_updater.OnMessage.subscribe(self.handle_update)
+
+    def _init_worker(self):
+        self.mqtt_updater.start()
+
+    def handle_update(self, msg):
+        try:
+            data = json.loads(msg)
+            logger.info(data)
+            self.whenDoorReported.on_next(data)
+
+        except Exception as ex:
+            logger.error("Exception in mqtt thread: " + str(ex))
 
 class PowerWorker(HallonWorker):
     def __init__(self, config, workers):
@@ -52,9 +71,9 @@ class PowerWorker(HallonWorker):
         try:
             self.restart_watchdog()
             # expected structure: tickPeriod:123|counter:5
-            matches = re.match(r'tickPeriod:(\d+)', msg)
-            if matches.groups():
-                tick_period = matches.group(1)
+            data = json.loads(msg)
+            if "power_tick_period" in data:
+                tick_period = data['power_tick_period']
             else:
                 logger.info(f"Could not read power message {msg}")
                 return
@@ -119,11 +138,15 @@ class TemperatureWorker(HallonWorker):
     def __init__(self, config, workers):
         HallonWorker.__init__(self, config, workers)
         self.whenTemperatureReported = Subject()
+        self.whenMinMaxModified = Subject()
         self.whenNoTemperatureReported = Subject()
         self.mqtt_updater = MqttListener(config['mqtt']['broker'], config['mqtt']['topic'])
         self.mqtt_updater.OnMessage.subscribe(self.handle_update)
         self.watchdog = Timer(120.0, self.timeout)
         self.lost_count = 0
+        self.day = -1
+        self.todayMinValue = 0
+        self.todayMaxValue = 0
 
     def restart_watchdog(self):
         self.watchdog.cancel()
@@ -141,4 +164,16 @@ class TemperatureWorker(HallonWorker):
     def handle_update(self, msg):
         key, value = (x.strip() for x in msg.split(':'))
         if key == 'temp':
-            self.whenTemperatureReported.on_next(float(value))
+            temp = float(value)
+            day = datetime.day
+            if self.day != day:
+                self.day = day
+                self.todayMinValue = 100
+                self.todayMaxValue = -100
+            if temp < self.todayMinValue:
+                self.todayMinValue = temp
+                self.whenMinMaxModified.on_next((self.todayMinValue, self.todayMaxValue))
+            if (temp > self.todayMaxValue):
+                self.todayMaxValue = temp
+                self.whenMinMaxModified.on_next((self.todayMinValue, self.todayMaxValue))
+            self.whenTemperatureReported.on_next(temp)

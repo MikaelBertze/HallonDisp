@@ -3,26 +3,31 @@
     "geometry": "720x480",
     "fullscreen": false
   },
-
-  "workers":{
+  "workers": {
     "power-worker": {
-      "source": { "type": "built-in", "name":  "power-worker"},
+      "source": {
+        "type": "built-in",
+        "name": "power-worker"
+      },
       "is-abstract": false,
       "config": {
         "mqtt": {
           "broker": "192.168.1.150",
-          "topic": "/megatron/electricityticker/tickperiod"
+          "topic": "/megatron/power"
         }
       }
     },
-
     "cumulative-power-worker": {
-      "source": { "type": "built-in", "name":  "cumulative-power-worker"},
+      "source": {
+        "type": "built-in",
+        "name": "cumulative-power-worker"
+      },
       "is-abstract": true,
-      "require-workers": ["power-worker"],
+      "require-workers": [
+        "power-worker"
+      ],
       "config": {}
     },
-
     "cumulative-power-worker-minute": {
       "extends": "cumulative-power-worker",
       "is-abstract": false,
@@ -44,7 +49,6 @@
         "reset-mode": "day"
       }
     },
-
     "temperature-worker": {
       "source": {
         "type": "built-in",
@@ -57,14 +61,30 @@
           "topic": "/megatron/temperature"
         }
       }
+    },
+    "door-worker": {
+      "source": {
+        "type": "built-in",
+        "name": "door-worker"
+      },
+      "is-abstract": false,
+      "config": {
+        "mqtt": {
+          "broker": "192.168.1.150",
+          "topic": "/megatron/door"
+        }
+      }
     }
   },
-
   "widgets": {
     "nominal-power": {
       "source": "built-in",
       "type": "nominal_power",
-      "require_workers": [{"worker-name": "power-worker"}],
+      "require_workers": [
+        {
+          "worker-name": "power-worker"
+        }
+      ],
       "config": {
         "background": "#333",
         "foreground": "#fff",
@@ -74,7 +94,12 @@
     "cumulative-power-hour": {
       "source": "built-in",
       "type": "cumulative_power",
-      "require_workers": [{"worker-name": "cumulative-power-worker-hour", "worker-alias": "cumulative-power-worker"}],
+      "require_workers": [
+        {
+          "worker-name": "cumulative-power-worker-hour",
+          "worker-alias": "cumulative-power-worker"
+        }
+      ],
       "config": {
         "background": "#333",
         "foreground": "#fff",
@@ -82,10 +107,15 @@
         "titlefontsize": 30
       }
     },
-     "cumulative-power-day": {
+    "cumulative-power-day": {
       "source": "built-in",
       "type": "cumulative_power",
-      "require_workers": [{"worker-name": "cumulative-power-worker-day", "worker-alias": "cumulative-power-worker"}],
+      "require_workers": [
+        {
+          "worker-name": "cumulative-power-worker-day",
+          "worker-alias": "cumulative-power-worker"
+        }
+      ],
       "config": {
         "background": "#333",
         "foreground": "#fff",
@@ -93,11 +123,15 @@
         "titlefontsize": 30
       }
     },
-
     "temperature-outside": {
       "source": "built-in",
       "type": "temperature",
-      "require_workers": [{"worker-name":  "temperature-worker", "worker-alias": "temperature-worker"}],
+      "require_workers": [
+        {
+          "worker-name": "temperature-worker",
+          "worker-alias": "temperature-worker"
+        }
+      ],
       "config": {
         "background": "#333",
         "foreground": "#fff",
@@ -116,7 +150,6 @@
         "time_format": ""
       }
     },
-
     "timer": {
       "source": "built-in",
       "type": "timer",
@@ -127,9 +160,24 @@
         "fontsize": 30,
         "duration": 0
       }
+    },
+    "garage-door": {
+      "source": "built-in",
+      "type": "door",
+      "require_workers": [
+        {
+          "worker-name": "door-worker"
+        }
+      ],
+      "config": {
+        "true_background": "#333",
+        "true_foreground": "#f00",
+        "false_background": "#333",
+        "false_foreground": "#0f0",
+        "fontsize": 40
+      }
     }
   },
-
   "pages": [
     {
       "name": "Main page",
@@ -141,15 +189,16 @@
           "name": "nominal-power"
         },
         {
-          "name": "cumulative-power-hour",
-          "config": {
-            "title": "Timmens förbrukning"
-          }
-        },
-        {
           "name": "temperature-outside",
           "config": {
             "title": "Ute-temperatur"
+          }
+        },
+        {
+          "name": "garage-door",
+          "config": {
+            "title": "Garageport",
+            "door-id": "10702547_2"
           }
         }
       ]

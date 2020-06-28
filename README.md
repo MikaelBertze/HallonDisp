@@ -14,7 +14,7 @@ Pages can contain any number of widgets as long as they fit the screen size. The
 # The backround workers
 You often need some kind of backround worker that either listen to or fetch data from some device. For this you can use a HallonWorker that runs on its own thread. A HallonWorker can then publich updates to the UI whenever new data is available.
 
-There are some built-in workers that handle a few different IoT devices. Most of them subscribe on mqtt messages, process the message and then publich a ui friendly message through a Rx subject. The connextion between a widget and its requiered workers are defined in the configuration file `hallondisp.json`.
+There are some built-in workers that handle a few different IoT devices. Most of them subscribe on mqtt messages, process the message and then publich a ui friendly message through a Rx subject. The connection between a widget and its requiered workers are defined in the configuration file `hallondisp.json`.
 
 A HallonWorker can be shared between multiple HallonWidgets. This makes it possible to have multiple widges backed by the same data source 
 

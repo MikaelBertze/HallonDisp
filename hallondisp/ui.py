@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 from loguru import logger
-from tkinter import Tk, Button, Frame, PhotoImage, LEFT
+from tkinter import Tk, Button, Frame, PhotoImage
 from rx.subject import Subject
 from hallondisp.factories import WidgetFactory, WorkerFactory
 
@@ -56,17 +56,11 @@ class MainApp(Tk):
         page.grid(row=0, column=0, sticky="nsew")
         self.pages.append(page)
 
-
     def next_frame(self, forward):
         self.current_page += 1 if forward else -1
         self.current_page %= len(self.pages)
 
         logger.info("Frame switch: " + str(self.current_page))
 
-        F = self.pages[self.current_page]
-        #F.on_show()
-        F.tkraise()
-
-
-
-
+        page = self.pages[self.current_page]
+        page.tkraise()

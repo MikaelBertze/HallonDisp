@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import json
-import re
 from datetime import datetime
 from threading import Timer
 import numpy as np
@@ -25,6 +24,7 @@ class HallonWorker:
     def _init_worker(self):
         raise NotImplementedError("You should implement this...")
 
+
 class DoorWorker(HallonWorker):
     def __init__(self, config, workers):
         HallonWorker.__init__(self, config, workers)
@@ -43,6 +43,7 @@ class DoorWorker(HallonWorker):
 
         except Exception as ex:
             logger.error("Exception in mqtt thread: " + str(ex))
+
 
 class PowerWorker(HallonWorker):
     def __init__(self, config, workers):
@@ -173,7 +174,7 @@ class TemperatureWorker(HallonWorker):
             if temp < self.todayMinValue:
                 self.todayMinValue = temp
                 self.whenMinMaxModified.on_next((self.todayMinValue, self.todayMaxValue))
-            if (temp > self.todayMaxValue):
+            if temp > self.todayMaxValue:
                 self.todayMaxValue = temp
                 self.whenMinMaxModified.on_next((self.todayMinValue, self.todayMaxValue))
             self.whenTemperatureReported.on_next(temp)

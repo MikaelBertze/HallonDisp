@@ -28,6 +28,7 @@ class WorkerFactory:
             logger.info(f"{worker_name} has already been constructed. Reusing existing worker")
             return self.instances[worker_name]
 
+        worker = None
         if config['source']['type'] == "built-in":
             logger.info(f"{worker_name} is a built-in worker.")
             if "require-workers" in config:

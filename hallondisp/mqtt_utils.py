@@ -28,7 +28,6 @@ class MqttListener(threading.Thread):
         logger.info(userdata._topic)
         client.subscribe(userdata._topic)
 
-
     def on_message(self, client, userdata, msg):
         try:
             received = msg.payload.decode('ascii')

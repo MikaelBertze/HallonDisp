@@ -1,13 +1,8 @@
 # -*- coding: utf-8 -*-
 import time
 from multiprocessing import Process
-from threading import Timer
 from tkinter import Frame, StringVar, Label, Button
-from datetime import datetime, timedelta
 from loguru import logger
-from hallondisp import mqtt_utils
-import numpy as np
-
 from hallondisp.hallon_workers import PowerWorker, CumulativePowerWorker, TemperatureWorker, DoorWorker
 from hallondisp.utils import sound_player
 
@@ -16,10 +11,6 @@ class HallonWidget(Frame):
     def __init__(self, parent, workers):
         Frame.__init__(self, parent)
         self.workers = workers
-
-    @property
-    def tk_frame(self) -> Frame:
-        return self.__tkFrame
 
     def get_worker(self, name):
         return self.workers[name]
@@ -45,16 +36,12 @@ class CurrentTimeWidget(HallonWidget):
         self.after(100, self.update)
 
 
-
-    @staticmethod
-    def hallon_size():
-        return 1, 4
-
-
 class TimerWidget(HallonWidget):
     def __init__(self, parent, config, workers):
         HallonWidget.__init__(self, parent, workers)
+        self.start_time = None
         self.config(bg=config['background'])
+        # noinspection PyTypeChecker
         self.alarm_process: Process = None
         self.mode = "reset"
         self.name = config['title']
@@ -79,11 +66,8 @@ class TimerWidget(HallonWidget):
         self.mode = "reset"
         # self.config(bg="#333")
         self.button.config(bg="#333", activebackground='#333')
-
-        self.start_time = None
         self.text.set(f"{self.name} ({self.minutes:02}:{self.seconds:02})")
-
-        if self.alarm_process != None and self.alarm_process.is_alive():
+        if self.alarm_process is not None and self.alarm_process.is_alive():
             self.alarm_process.kill()
 
     def start(self):
@@ -145,10 +129,10 @@ class TemperatureWidget(HallonWidget):
               font=("DejaVu Sans", config['titlefontsize'], "bold")).pack()
 
         self.temperature_label = Label(self,
-                                 textvariable=self.temperatureValue,
-                                 bg=config['background'],
-                                 fg=config['foreground'],
-                                 font=("DejaVu Sans", config['fontsize'], "bold"))
+                                       textvariable=self.temperatureValue,
+                                       bg=config['background'],
+                                       fg=config['foreground'],
+                                       font=("DejaVu Sans", config['fontsize'], "bold"))
         self.temperature_label.pack()
 
         worker: TemperatureWorker = self.get_worker('temperature-worker')
@@ -167,9 +151,9 @@ class DoorWidget(HallonWidget):
     def __init__(self, parent, config, workers):
         HallonWidget.__init__(self, parent, workers)
         self.door_id = config['door-id']
-        self.config = config;
-        #self.doorValue = StringVar()
-        #self.doorValue.set("---")
+        self.config = config
+        # self.doorValue = StringVar()
+        # self.doorValue.set("---")
         self.door_label = Label(self,
                                 text=config['title'],
                                 bg='yellow',
@@ -183,14 +167,11 @@ class DoorWidget(HallonWidget):
     def handle_update(self, update):
         if update['id'] == self.door_id:
             if update['door']:
-                self.door_label.config(fg=self.config['true_foreground'], bg=self.config['true_background'], activebackground=self.config['true_background'])
+                self.door_label.config(fg=self.config['true_foreground'], bg=self.config['true_background'],
+                                       activebackground=self.config['true_background'])
             else:
-                self.door_label.config(fg=self.config['false_foreground'], bg=self.config['false_background'], activebackground=self.config['false_background'])
-
-
-    @staticmethod
-    def hallon_size():
-        return 1, 4
+                self.door_label.config(fg=self.config['false_foreground'], bg=self.config['false_background'],
+                                       activebackground=self.config['false_background'])
 
 
 class CurrentPower(HallonWidget):
@@ -210,11 +191,6 @@ class CurrentPower(HallonWidget):
 
     def handle_update(self, update):
         self.powerValue.set("{:.0f}W".format(update))
-
-
-    @staticmethod
-    def hallon_size():
-        return 1, 4
 
 
 class CumulativePower(HallonWidget):
@@ -243,7 +219,3 @@ class CumulativePower(HallonWidget):
 
     def handle_update(self, update):
         self.powerValue.set("{:.2f}kWh".format(update))
-
-    @staticmethod
-    def hallon_size():
-        return 1, 4

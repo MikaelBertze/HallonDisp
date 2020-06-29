@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 from typing import Dict
-import os
 from loguru import logger
 from hallondisp import configreader
 from hallondisp import ui
 
 
-
-def __verify_app_config(config:Dict):
+def __verify_app_config(config: Dict):
     # should contain app geometry
     assert "geometry" in config.keys(), "\"geometry\" missing in config file"
     assert "fullscreen" in config.keys(), "\"fullscreen\" missing in config file"
+
 
 def start_app():
     logger.add("hallondisp.log", retention="5 days")
@@ -26,14 +25,5 @@ def start_app():
 
     if app_config['fullscreen']:
         app.attributes("-fullscreen", True)
-    #else:
-    #    app.attributes('-type', 'splash')
     app.geometry(app_config['geometry'])
-
-
     app.mainloop()
-
-#def __build_widget(config):
-
-
-

@@ -8,7 +8,7 @@ from loguru import logger
 from hallondisp import mqtt_utils
 import numpy as np
 
-from hallondisp.hallon_workers import PowerWorker, CumulativePowerWorker, TemperatureWorker
+from hallondisp.hallon_workers import PowerWorker, CumulativePowerWorker, TemperatureWorker, DoorWorker
 from hallondisp.utils import sound_player
 
 
@@ -177,7 +177,7 @@ class DoorWidget(HallonWidget):
                                 font=("DejaVu Sans", config['fontsize'], "bold"))
         self.door_label.pack()
 
-        worker: PowerWorker = self.get_worker('door-worker')
+        worker: DoorWorker = self.get_worker('door-worker')
         worker.whenDoorReported.subscribe(lambda x: self.handle_update(x))
 
     def handle_update(self, update):

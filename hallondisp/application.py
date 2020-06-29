@@ -26,8 +26,8 @@ def start_app():
 
     if app_config['fullscreen']:
         app.attributes("-fullscreen", True)
-    else:
-        app.attributes('-type', 'splash')
+    #else:
+    #    app.attributes('-type', 'splash')
     app.geometry(app_config['geometry'])
 
 

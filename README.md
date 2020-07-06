@@ -36,3 +36,91 @@ A HallonWorker can be shared between multiple HallonWidgets. This makes it possi
 - CurrentPowerWidget
   The widget require a worker of type `PowerWorker`. At construction, the widget subscribes on `whenPowerReported` and updates the power-label when a new current power is reported.
 
+
+# Installing on a rasberry Pi with a HyperPixel 4' display
+## Prepare SD-card
+- Download and flash a rasbian lite to a SD-card.
+- Add a wpa_supplicant.conf file to the boot partition
+  ```
+  ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+  update_config=1
+  country=SE
+  
+  network={
+    ssid="SSID"
+    psk="Passwd"
+  }
+  ```
+- Add an empty file named `ssh` to the boot partition
+- Boot the Raspberry Pi
+- Connect: `ssh pi@raspberrypi.local`
+- Change hostname (edit `/etc/hostname`)
+- Reboot
+- connect: `ssh pi@somehostname.local`
+
+## Upgrade
+```
+sudo apt update
+sudo apt upgrade
+```
+
+## Install apt packages
+```
+sudo apt update
+sudo apt install python3-numpy python3-tk python3-pip xinit git unclutter
+```
+
+## Install HyperPixel display
+https://github.com/pimoroni/hyperpixel4
+(`curl -sSL https://get.pimoroni.com/hyperpixel4 | bash`)
+
+## Clone HallonDisp repo
+```
+cd
+git clone https://github.com/MikaelBertze/HallonDisp.git
+```
+Install pip packages
+```
+cd HallonDisp
+sudo pip3 install -r requirements.txt
+```
+
+## Startup script
+Create a startup script `/home/pi/kiosk.sh` and set it as executable with `chmod 744 /home/pi/kiosk.sh`
+
+```
+#!/bin/bash
+xset s noblank
+xset s off
+xset -dpms
+
+unclutter -idle 0 -root &
+
+cd /home/pi/HallonDisp
+python3.7 hallondisp.py
+```
+
+Now it's time to test it!
+```
+sudo xinit /home/pi/kiosk.sh
+```
+
+## Service setup
+Create a systemd config file named `/lib/systemd/system/hallondisp.service`:
+```
+[Unit]
+Description=HallonDisp startup service
+
+[Service]
+ExecStart=xinit /home/pi/kiosk.sh
+
+[Install]
+WantedBy=multi-user.target
+```
+Reload systemctl: `sudo systemctl daemon-reload`
+Start service: `sudo systemctl start hallondisp`
+Enable service: `sudo systemctl enable hallondisp` (auto-start)
+
+Reboot!
+
+

@@ -5,7 +5,9 @@ from threading import Timer
 import numpy as np
 from loguru import logger
 from rx.subject import Subject
-
+import requests
+from bs4 import BeautifulSoup
+from hallondisp import mqtt_utils
 from hallondisp.mqtt_utils import MqttListener
 
 
@@ -29,7 +31,8 @@ class DoorWorker(HallonWorker):
     def __init__(self, config, workers):
         HallonWorker.__init__(self, config, workers)
         self.whenDoorReported = Subject()
-        self.mqtt_updater = MqttListener(config['mqtt']['broker'], config['mqtt']['topic'])
+        broker = mqtt_utils.get_broker(config['mqtt']['broker'])
+        self.mqtt_updater = MqttListener(broker, config['mqtt']['topic'])
         self.mqtt_updater.OnMessage.subscribe(self.handle_update)
 
     def _init_worker(self):
@@ -50,7 +53,9 @@ class PowerWorker(HallonWorker):
         HallonWorker.__init__(self, config, workers)
         self.whenPowerReported = Subject()
         self.whenNoPowerReported = Subject()
-        self.mqtt_updater = MqttListener(config['mqtt']['broker'], config['mqtt']['topic'])
+        broker = mqtt_utils.get_broker(config['mqtt']['broker'])
+        self.mqtt_updater = MqttListener(broker, config['mqtt']['topic'])
+
         self.mqtt_updater.OnMessage.subscribe(self.handle_update)
         self.watchdog = Timer(10.0, self.timeout)
         self.lost_count = 0
@@ -141,7 +146,8 @@ class TemperatureWorker(HallonWorker):
         self.whenTemperatureReported = Subject()
         self.whenMinMaxModified = Subject()
         self.whenNoTemperatureReported = Subject()
-        self.mqtt_updater = MqttListener(config['mqtt']['broker'], config['mqtt']['topic'])
+        broker = mqtt_utils.get_broker(config['mqtt']['broker'])
+        self.mqtt_updater = MqttListener(broker, config['mqtt']['topic'])
         self.mqtt_updater.OnMessage.subscribe(self.handle_update)
         self.watchdog = Timer(120.0, self.timeout)
         self.lost_count = 0
@@ -163,18 +169,63 @@ class TemperatureWorker(HallonWorker):
         self.mqtt_updater.start()
 
     def handle_update(self, msg):
-        key, value = (x.strip() for x in msg.split(':'))
-        if key == 'temp':
-            temp = float(value)
-            day = datetime.day
-            if self.day != day:
-                self.day = day
-                self.todayMinValue = 100
-                self.todayMaxValue = -100
-            if temp < self.todayMinValue:
-                self.todayMinValue = temp
-                self.whenMinMaxModified.on_next((self.todayMinValue, self.todayMaxValue))
-            if temp > self.todayMaxValue:
-                self.todayMaxValue = temp
-                self.whenMinMaxModified.on_next((self.todayMinValue, self.todayMaxValue))
-            self.whenTemperatureReported.on_next(temp)
+        logger.info(msg)
+        data = json.loads(msg)
+        #key, value = (x.strip() for x in msg.split(':'))
+        sensor_id = data['id']
+        temp = float(data["temp"])
+        #day = datetime.day
+        #if self.day != day:
+        #    self.day = day
+        #    self.todayMinValue = 100
+        #    self.todayMaxValue = -100
+        #if temp < self.todayMinValue:
+        #    self.todayMinValue = temp
+        #    self.whenMinMaxModified.on_next((self.todayMinValue, self.todayMaxValue))
+        #if temp > self.todayMaxValue:
+        #    self.todayMaxValue = temp
+        #    self.whenMinMaxModified.on_next((self.todayMinValue, self.todayMaxValue))
+        self.whenTemperatureReported.on_next({ 'sensor_id': sensor_id, 'temp': temp})
+
+
+class LunchWorker(HallonWorker):
+    def __init__(self, config, workers):
+        HallonWorker.__init__(self, config, workers)
+        self.whenNewLunchReported = Subject()
+        self.lunch = ""
+
+    def _init_worker(self):
+        self.update()
+
+    def update(self):
+
+        # Find url for 'matsedel'
+        URL = 'http://skola.karlstad.se/hultsbergsskolan4a/matsedel/'
+        page = requests.get(URL)
+        soup = BeautifulSoup(page.content, 'html.parser')
+        x = soup.find('object')
+        matsedel_url = x['data']
+
+        page = requests.get(matsedel_url)
+        soup = BeautifulSoup(page.content, 'html.parser')
+
+        today = datetime.now()
+        lunch = self.get_lunch_for_date(today, soup)
+        logger.info(f"Lunch: {lunch}")
+        self.lunch = {'today': lunch}
+        self.whenNewLunchReported.on_next(self.lunch)
+
+        timer = Timer(60, self.update)
+        timer.daemon = True
+        timer.start()
+
+    def get_lunch_for_date(self, date, soup):
+        months = ['jan', 'feb', 'mar', 'apr', 'maj', 'juni', 'juli', 'aug', 'sep', 'okt', 'nov', 'dec']
+        day_s = f"{date.strftime('%d')} {months[date.month - 1]}"
+        try:
+            x = soup.find('div', string=day_s)
+            y = x.parent.parent.find('div', class_="app-daymenu-name")
+            lunch = y.text
+        except:
+            return "Nada"
+        return lunch

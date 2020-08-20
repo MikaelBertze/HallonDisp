@@ -3,7 +3,7 @@ import time
 from multiprocessing import Process
 from tkinter import Frame, StringVar, Label, Button
 from loguru import logger
-from hallondisp.hallon_workers import PowerWorker, CumulativePowerWorker, TemperatureWorker, DoorWorker
+from hallondisp.hallon_workers import PowerWorker, CumulativePowerWorker, TemperatureWorker, DoorWorker, LunchWorker
 from hallondisp.utils import sound_player
 
 
@@ -115,6 +115,7 @@ class TemperatureWidget(HallonWidget):
     def __init__(self, parent, config, workers):
         HallonWidget.__init__(self, parent, workers)
         self.config(bg=config['background'])
+        self.sensor_id = config['sensor_id']
         self.temperatureValue = StringVar()
         self.min_tempValue = StringVar()
         self.max_tempValue = StringVar()
@@ -140,7 +141,9 @@ class TemperatureWidget(HallonWidget):
         worker.whenMinMaxModified.subscribe(lambda x: self.handle_min_max_update(x))
 
     def handle_update(self, update):
-        self.temperatureValue.set("{:.1f}°C".format(update))
+        logger.info(update)
+        if update['sensor_id'] == self.sensor_id:
+            self.temperatureValue.set("{:.1f}°C".format(update['temp']))
 
     def handle_min_max_update(self, min_max):
         self.min_tempValue.set("{:.1f}°C".format(min_max[0]))
@@ -219,3 +222,37 @@ class CumulativePower(HallonWidget):
 
     def handle_update(self, update):
         self.powerValue.set("{:.2f}kWh".format(update))
+
+
+class Lunch(HallonWidget):
+    def __init__(self, parent, config, workers):
+        HallonWidget.__init__(self, parent, workers)
+        logger.info("Lunch widget starting")
+        self.config(bg=config['background'])
+        self.powerValue = StringVar()
+        self.powerValue.set("---")
+
+        Label(self,
+              text="Dagens lunch",
+              bg=config['background'],
+              fg=config['foreground'],
+              font=("DejaVu Sans", config['titlefontsize'], "bold")).pack()
+
+        self.power_label = Label(self,
+                                 textvariable=self.powerValue,
+                                 bg=config['background'],
+                                 fg=config['foreground'],
+                                 pady=150,
+                                 font=("DejaVu Sans", config['fontsize'], "bold"))
+        self.power_label.pack()
+
+        worker: LunchWorker = self.get_worker('lunch-worker')
+        worker.whenNewLunchReported.subscribe(lambda x: self.handle_update(x))
+        self.handle_update(worker.lunch)
+
+    def handle_update(self, update):
+        logger.warning(update)
+        if 'today' in update:
+            lunch = update['today']
+            lunch = lunch.replace(',', '\n')
+            self.powerValue.set(lunch)

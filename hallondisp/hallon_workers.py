@@ -217,7 +217,7 @@ class LunchWorker(HallonWorker):
         except:
             logger.warning("Could not fetch todays lunch")
         finally:
-            timer = Timer(60, self.update)
+            timer = Timer(60 * 15, self.update)
             timer.daemon = True
             timer.start()
 

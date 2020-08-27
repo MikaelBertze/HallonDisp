@@ -198,26 +198,28 @@ class LunchWorker(HallonWorker):
         self.update()
 
     def update(self):
+        try:
+            # Find url for 'matsedel'
+            URL = 'http://skola.karlstad.se/hultsbergsskolan4a/matsedel/'
+            page = requests.get(URL)
+            soup = BeautifulSoup(page.content, 'html.parser')
+            x = soup.find('object')
+            matsedel_url = x['data']
 
-        # Find url for 'matsedel'
-        URL = 'http://skola.karlstad.se/hultsbergsskolan4a/matsedel/'
-        page = requests.get(URL)
-        soup = BeautifulSoup(page.content, 'html.parser')
-        x = soup.find('object')
-        matsedel_url = x['data']
+            page = requests.get(matsedel_url)
+            soup = BeautifulSoup(page.content, 'html.parser')
 
-        page = requests.get(matsedel_url)
-        soup = BeautifulSoup(page.content, 'html.parser')
-
-        today = datetime.now()
-        lunch = self.get_lunch_for_date(today, soup)
-        logger.info(f"Lunch: {lunch}")
-        self.lunch = {'today': lunch}
-        self.whenNewLunchReported.on_next(self.lunch)
-
-        timer = Timer(60, self.update)
-        timer.daemon = True
-        timer.start()
+            today = datetime.now()
+            lunch = self.get_lunch_for_date(today, soup)
+            logger.info(f"Lunch: {lunch}")
+            self.lunch = {'today': lunch}
+            self.whenNewLunchReported.on_next(self.lunch)
+        except:
+            logger.warning("Could not fetch todays lunch")
+        finally:
+            timer = Timer(60, self.update)
+            timer.daemon = True
+            timer.start()
 
     def get_lunch_for_date(self, date, soup):
         months = ['jan', 'feb', 'mar', 'apr', 'maj', 'juni', 'juli', 'aug', 'sep', 'okt', 'nov', 'dec']

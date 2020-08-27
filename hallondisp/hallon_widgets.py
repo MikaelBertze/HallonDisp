@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import time
 from multiprocessing import Process
-from tkinter import Frame, StringVar, Label, Button
+from tkinter import Frame, StringVar, Label, Button, Text, END, WORD, CENTER
 from loguru import logger
 from hallondisp.hallon_workers import PowerWorker, CumulativePowerWorker, TemperatureWorker, DoorWorker, LunchWorker
 from hallondisp.utils import sound_player
@@ -229,8 +229,8 @@ class Lunch(HallonWidget):
         HallonWidget.__init__(self, parent, workers)
         logger.info("Lunch widget starting")
         self.config(bg=config['background'])
-        self.powerValue = StringVar()
-        self.powerValue.set("---")
+        self.lunchValue = StringVar()
+        self.lunchValue.set("---")
 
         Label(self,
               text="Dagens lunch",
@@ -238,21 +238,28 @@ class Lunch(HallonWidget):
               fg=config['foreground'],
               font=("DejaVu Sans", config['titlefontsize'], "bold")).pack()
 
-        self.power_label = Label(self,
-                                 textvariable=self.powerValue,
-                                 bg=config['background'],
-                                 fg=config['foreground'],
-                                 pady=150,
-                                 font=("DejaVu Sans", config['fontsize'], "bold"))
-        self.power_label.pack()
+        self.textbox = Text(self,
+                            height=6,
+                            width=50,
+                            bg=config['background'],
+                            fg=config['foreground'],
+                            font=("DejaVu Sans", config['fontsize'], "bold"),
+                            wrap=WORD,
+                            highlightthickness=0,
+                            borderwidth=0,
+                            pady=30)
+
+        self.textbox.tag_configure('tag-center', justify=CENTER)
+        self.textbox.pack()
 
         worker: LunchWorker = self.get_worker('lunch-worker')
         worker.whenNewLunchReported.subscribe(lambda x: self.handle_update(x))
         self.handle_update(worker.lunch)
 
     def handle_update(self, update):
-        logger.warning(update)
+        logger.info(update)
         if 'today' in update:
             lunch = update['today']
             lunch = lunch.replace(',', '\n')
-            self.powerValue.set(lunch)
+            self.textbox.delete(1.0, END)
+            self.textbox.insert(END, lunch, 'tag-center')

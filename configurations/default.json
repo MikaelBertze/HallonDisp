@@ -12,8 +12,8 @@
       "is-abstract": false,
       "config": {
         "mqtt": {
-          "broker": "192.168.1.150",
-          "topic": "/megatron/power"
+          "broker": "default",
+          "topic": "/hallondisp/power"
         }
       }
     },
@@ -57,8 +57,8 @@
       "is-abstract": false,
       "config": {
         "mqtt": {
-          "broker": "192.168.1.150",
-          "topic": "/megatron/temperature"
+          "broker": "default",
+          "topic": "/hallondisp/temperature"
         }
       }
     },
@@ -70,9 +70,18 @@
       "is-abstract": false,
       "config": {
         "mqtt": {
-          "broker": "192.168.1.150",
-          "topic": "/megatron/door"
+          "broker": "default",
+          "topic": "/hallondisp/door"
         }
+      }
+    },
+    "lunch-worker": {
+      "source": {
+        "type": "built-in",
+        "name": "lunch-worker"
+      },
+      "is-abstract": false,
+      "config": {
       }
     }
   },
@@ -133,6 +142,7 @@
         }
       ],
       "config": {
+        "sensor_id": "garage",
         "background": "#333",
         "foreground": "#fff",
         "fontsize": 60,
@@ -176,6 +186,21 @@
         "false_foreground": "#0f0",
         "fontsize": 40
       }
+    },
+    "lunch": {
+      "source": "built-in",
+      "type": "lunch",
+      "require_workers": [
+        {
+          "worker-name": "lunch-worker"
+        }
+      ],
+      "config": {
+        "background": "#333",
+        "foreground": "#fff",
+        "titlefontsize" : 40,
+        "fontsize": 30
+      }
     }
   },
   "pages": [
@@ -198,8 +223,19 @@
           "name": "garage-door",
           "config": {
             "title": "Garageport",
-            "door-id": "10729047_2"
+            "door-id": "garage"
           }
+        }
+      ]
+    },
+    {
+      "name": "Lunch page",
+      "widgets": [
+        {
+          "name": "local_time"
+        },
+        {
+          "name": "lunch"
         }
       ]
     },

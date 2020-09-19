@@ -8,7 +8,8 @@ class WorkerFactory:
         'power-worker': PowerWorker,
         'cumulative-power-worker': CumulativePowerWorker,
         'temperature-worker': TemperatureWorker,
-        'door-worker': DoorWorker
+        'door-worker': DoorWorker,
+        'lunch-worker': LunchWorker,
     }
 
     def __init__(self, worker_configs):
@@ -57,7 +58,8 @@ class WidgetFactory:
         'cumulative_power': CumulativePower,
         'temperature': TemperatureWidget,
         "timer": TimerWidget,
-        "door": DoorWidget
+        "door": DoorWidget,
+        "lunch": Lunch
     }
 
     def __init__(self, widget_configs, worker_factory: WorkerFactory):

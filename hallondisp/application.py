@@ -14,7 +14,8 @@ def __verify_app_config(config: Dict):
 def start_app():
     logger.add("hallondisp.log", retention="5 days")
     logger.info("Starting up!")
-    config = configreader.read_json_config("hallondisp.json")
+    config = configreader.read_json_config()
+
     app_config = config['app']
     __verify_app_config(app_config)
     logger.info("Config file app section looks good!")

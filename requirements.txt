@@ -1,3 +1,5 @@
 loguru
 rx
 paho-mqtt
+beautifulsoup4
+requests

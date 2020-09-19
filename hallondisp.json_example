@@ -1,0 +1,13 @@
+{
+  "configuration-style" : "local",
+  "configuration_url" : "url_to_config_json",
+  "configuration_file" : "configurations/default.json",
+  "mqtt_definitions": [
+    {
+      "name": "default" ,
+      "host": "mqtt_host",
+      "user" :  "username",
+      "pass" :  "password"
+    }
+  ]
+}

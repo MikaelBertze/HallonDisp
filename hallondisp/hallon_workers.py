@@ -231,3 +231,25 @@ class LunchWorker(HallonWorker):
         except:
             return "Nada"
         return lunch
+
+
+class WeatherWorker(HallonWorker):
+    def __init__(self, config, workers):
+        HallonWorker.__init__(self, config, workers)
+        self.whenNewWeatherReported = Subject()
+        self.weather = {}
+
+    def _init_worker(self):
+        self.update()
+
+    def update(self):
+        try:
+            self.weather = {}
+            pass
+        except:
+            logger.warning("Could not fetch weather")
+        finally:
+            timer = Timer(60 * 15, self.update)
+            timer.daemon = True
+            timer.start()
+

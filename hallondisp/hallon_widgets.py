@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
+import os
 import time
 from multiprocessing import Process
-from tkinter import Frame, StringVar, Label, Button, Text, END, WORD, CENTER
+from tkinter import Frame, StringVar, Label, Button, Text, END, WORD, CENTER, Entry, W, E, PhotoImage, Canvas, EW
 from loguru import logger
 from hallondisp.hallon_workers import PowerWorker, CumulativePowerWorker, TemperatureWorker, DoorWorker, LunchWorker
 from hallondisp.utils import sound_player
@@ -263,3 +264,89 @@ class Lunch(HallonWidget):
             lunch = lunch.replace(',', '\n')
             self.textbox.delete(1.0, END)
             self.textbox.insert(END, lunch, 'tag-center')
+
+
+class WeatherToday(HallonWidget):
+    def __init__(self, parent, config, workers):
+        HallonWidget.__init__(self, parent, workers)
+        logger.info("WeatherToday widget starting")
+        self.config(bg=config['background'], width=600, height=300, highlightbackground="green", highlightcolor="green", highlightthickness=1)
+        self.grid_propagate(0)
+
+        self.image = PhotoImage(file=os.path.join(os.path.dirname(__file__), 'images/weather/02n.png'))
+        canvas = Canvas(self, width=100, height=100, bg=config['background'], bd=0, highlightbackground=config['background'])
+        canvas.create_image(50, 50, image=self.image)
+        canvas.grid(row=0, column=0)
+
+        row = 1
+        Label(self,
+              text="5°/15°",
+              bg=config['background'],
+              fg=config['foreground'],
+              font=("DejaVu Sans", 25, "bold")).grid(sticky=EW, row=row, column=0, ipady=2, ipadx=0)
+        row += 1
+        Label(self,
+              text="Regn",
+              bg=config['background'],
+              fg=config['foreground'],
+              font=("DejaVu Sans", 20, "bold")).grid(sticky=EW, row=row, column=0, ipady=2, ipadx=0)
+        row += 1
+        Label(self,
+              text="1,3mm",
+              bg=config['background'],
+              fg=config['foreground'],
+              font=("DejaVu Sans", 25, "bold")).grid(sticky=EW, row=row, column=0, ipady=2, ipadx=0)
+
+        #
+        # Label(self,
+        #       text="12h",
+        #       bg=config['background'],
+        #       fg=config['foreground'],
+        #       font=("DejaVu Sans", config['titlefontsize'], "bold")).grid(sticky=W, row=0, column=2, ipady=2, ipadx=0)
+        #
+        # Label(self,
+        #       text="Temp:",
+        #       bg=config['background'],
+        #       fg=config['foreground'],
+        #       font=("DejaVu Sans", config['titlefontsize'], "bold")).grid(sticky=W, row=1, column=0, ipady=2, ipadx=0)
+        #
+        # Label(self,
+        #       text="Regn:",
+        #       padx=10,
+        #       bg=config['background'],
+        #       fg=config['foreground'],
+        #       font=("DejaVu Sans", config['titlefontsize'], "bold")).grid(sticky=W, row=2, column=0, ipady=2, ipadx=0)
+        # self.grid_columnconfigure(0, weight=1)
+        # self.grid_columnconfigure(1, weight=1)
+        # self.grid_columnconfigure(2, weight=1)
+        #
+        # self.temp12h = StringVar()
+        # self.temp12h.set("-")
+        # self.temp24h = StringVar()
+        # self.temp24h.set("-")
+        # self.rain12h = StringVar()
+        # self.rain12h.set("-")
+        # self.rain24h = StringVar()
+        # self.rain24h.set("-")
+        # for row, r in enumerate([[self.temp12h, self.temp24h], [self.rain12h, self.rain24h]]):
+        #     for col, c in enumerate(r):
+        #         Label(self,
+        #               textvariable = c,
+        #               padx=10,
+        #               bg=config['background'],
+        #               fg=config['foreground'],
+        #               font=("DejaVu Sans", config['titlefontsize'], "bold")).grid(sticky=W, row=row + 1, column=col + 1, ipady=2,
+        #                                                                           ipadx=0)
+
+
+        #worker: LunchWorker = self.get_worker('lunch-worker')
+        #worker.whenNewLunchReported.subscribe(lambda x: self.handle_update(x))
+        #self.handle_update(worker.lunch)
+
+    # def handle_update(self, update):
+    #     logger.info(update)
+    #     if 'today' in update:
+    #         lunch = update['today']
+    #         lunch = lunch.replace(',', '\n')
+    #         self.textbox.delete(1.0, END)
+    #         self.textbox.insert(END, lunch, 'tag-center')

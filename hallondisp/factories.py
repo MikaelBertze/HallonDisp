@@ -59,7 +59,8 @@ class WidgetFactory:
         'temperature': TemperatureWidget,
         "timer": TimerWidget,
         "door": DoorWidget,
-        "lunch": Lunch
+        "lunch": Lunch,
+        "weather_today": WeatherToday
     }
 
     def __init__(self, widget_configs, worker_factory: WorkerFactory):

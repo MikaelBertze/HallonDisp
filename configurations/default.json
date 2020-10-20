@@ -201,9 +201,29 @@
         "titlefontsize" : 40,
         "fontsize": 30
       }
+    },
+    "weather_today": {
+      "source": "built-in",
+      "type": "weather_today",
+      "require_workers": [
+      ],
+      "config": {
+        "background": "#333",
+        "foreground": "#fff",
+        "titlefontsize" : 25,
+        "fontsize": 25
+      }
     }
   },
   "pages": [
+    {
+      "name": "Weather Today",
+      "widgets": [
+        {
+          "name": "weather_today"
+        }
+      ]
+    },
     {
       "name": "Main page",
       "widgets": [

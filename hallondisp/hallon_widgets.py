@@ -263,3 +263,19 @@ class Lunch(HallonWidget):
             lunch = lunch.replace(',', '\n')
             self.textbox.delete(1.0, END)
             self.textbox.insert(END, lunch, 'tag-center')
+
+
+class Warnings(HallonWidget):
+    def __init__(self, parent, warnings, clear_warnings):
+        HallonWidget.__init__(self, parent, {})
+        self.config(bg="#333")
+        Button(self, text="Rensa", font=("DejaVu Sans", 25, "bold"), command=clear_warnings).pack()
+        for w in warnings.values():
+            Label(self,
+                  text=w,
+                  bg="#333",
+                  fg="#f00",
+                  font=("DejaVu Sans", 15, "bold")).pack()
+
+
+

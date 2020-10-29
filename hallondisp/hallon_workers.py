@@ -12,16 +12,37 @@ from hallondisp.mqtt_utils import MqttListener
 
 
 class HallonWorker:
-    def __init__(self, config, workers):
+    def __init__(self, config, workers, timeout_s=-1):
         self.config = config
         self.workers = workers
+        self.has_watchdog = False
+        self.whenWatchDogReport = Subject()
+        self.timeout_s = timeout_s
         self.initialized = False
+        self.msg_count = 0
+        self.watchdog = Timer(100000, None)
+
+    def timeout(self):
+        if self.msg_count == 0:
+            self.whenWatchDogReport.on_next({ 'state': False, 'message': self.watchdog_message(), 'hash': hash(self)})
+        else:
+            self.whenWatchDogReport.on_next({ 'state': True, 'message': "", 'hash': hash(self)})
+        self.msg_count = 0
+        self.watchdog.cancel()
+        self.watchdog = Timer(self.timeout_s, self.timeout)
+        self.watchdog.start()
+
+    def watchdog_message(self):
+        raise NotImplementedError("You should implement this...")
 
     def init_worker(self):
         logger.info("initializing worker")
         if not self.initialized:
             self._init_worker()
             self.initialized = True
+            if self.timeout_s > 0:
+                self.has_watchdog = True
+                self.timeout()
 
     def _init_worker(self):
         raise NotImplementedError("You should implement this...")
@@ -50,32 +71,23 @@ class DoorWorker(HallonWorker):
 
 class PowerWorker(HallonWorker):
     def __init__(self, config, workers):
-        HallonWorker.__init__(self, config, workers)
+        HallonWorker.__init__(self, config, workers, 10)
         self.whenPowerReported = Subject()
         self.whenNoPowerReported = Subject()
         broker = mqtt_utils.get_broker(config['mqtt']['broker'])
         self.mqtt_updater = MqttListener(broker, config['mqtt']['topic'])
 
         self.mqtt_updater.OnMessage.subscribe(self.handle_update)
-        self.watchdog = Timer(10.0, self.timeout)
-        self.lost_count = 0
+
+    def watchdog_message(self):
+        return "Power not reported:" + self.mqtt_updater._topic
 
     def _init_worker(self):
         self.mqtt_updater.start()
 
-    def restart_watchdog(self):
-        self.watchdog.cancel()
-        self.watchdog = Timer(15.0, self.timeout)
-        self.watchdog.start()
-
-    def timeout(self):
-        self.lost_count += 1
-        self.whenNoPowerReported.on_next(self.lost_count)
-        self.restart_watchdog()
-
     def handle_update(self, msg):
         try:
-            self.restart_watchdog()
+            self.msg_count += 1
             # expected structure: tickPeriod:123|counter:5
             data = json.loads(msg)
             if "power_tick_period" in data:
@@ -91,7 +103,6 @@ class PowerWorker(HallonWorker):
 
         except Exception as ex:
             logger.error("Exception in mqtt thread: " + str(ex))
-
 
 class CumulativePowerWorker(HallonWorker):
     def __init__(self, config, workers):
@@ -142,33 +153,25 @@ class CumulativePowerWorker(HallonWorker):
 
 class TemperatureWorker(HallonWorker):
     def __init__(self, config, workers):
-        HallonWorker.__init__(self, config, workers)
+        HallonWorker.__init__(self, config, workers, 5)
         self.whenTemperatureReported = Subject()
         self.whenMinMaxModified = Subject()
         self.whenNoTemperatureReported = Subject()
         broker = mqtt_utils.get_broker(config['mqtt']['broker'])
         self.mqtt_updater = MqttListener(broker, config['mqtt']['topic'])
         self.mqtt_updater.OnMessage.subscribe(self.handle_update)
-        self.watchdog = Timer(120.0, self.timeout)
-        self.lost_count = 0
         self.day = -1
         self.todayMinValue = 0
         self.todayMaxValue = 0
 
-    def restart_watchdog(self):
-        self.watchdog.cancel()
-        self.watchdog = Timer(15.0, self.timeout)
-        self.watchdog.start()
-
-    def timeout(self):
-        self.lost_count += 1
-        self.whenNoTemperatureReported.on_next(self.lost_count)
-        self.restart_watchdog()
-
     def _init_worker(self):
         self.mqtt_updater.start()
 
+    def watchdog_message(self):
+        return "Temp not reported:" + self.mqtt_updater._topic
+
     def handle_update(self, msg):
+        self.msg_count += 1
         logger.info(msg)
         data = json.loads(msg)
         #key, value = (x.strip() for x in msg.split(':'))

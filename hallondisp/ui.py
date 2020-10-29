@@ -87,6 +87,7 @@ class MainApp(Tk):
     def clear_warnings(self):
         logger.info("Cleared warnings")
         self.warnings = {}
+        self.show_warning_thingy()
 
     def load_page(self, page_config):
         logger.info(f"Loading page {page_config['name']}")

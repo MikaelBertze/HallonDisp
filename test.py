@@ -1,7 +1,7 @@
 
 from hallondisp import mqtt_utils as mqtt
 from hallondisp.factories import WorkerFactory
-from hallondisp.hallon_workers import PowerWorker, CumulativePowerWorker
+from hallondisp.hallon_workers import PowerWorker, CumulativePowerWorker, WeatherWorker
 from hallondisp import configreader as cr
 
 
@@ -40,6 +40,14 @@ def worker_factory():
     worker3.whenUsageReported.subscribe(lambda x: print(f"day usage: {x}"))
     worker3.init_worker()
 
-worker_factory()
+def weather_worker():
+    config = cr.read_json_config()
+    factory = WorkerFactory(config['workers'])
+    worker: WeatherWorker = factory.build_worker("weather_worker")
+    worker.whenNewWeatherReported.subscribe(lambda x: print(x))
 
+
+#worker_factory()
+
+weather_worker()
 input("Press Enter to exit...")

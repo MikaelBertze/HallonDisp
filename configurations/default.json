@@ -83,6 +83,15 @@
       "is-abstract": false,
       "config": {
       }
+    },
+    "weather_worker": {
+      "source": {
+        "type": "built-in",
+        "name": "weather-worker"
+      },
+      "is-abstract": false,
+      "config": {
+      }
     }
   },
   "widgets": {

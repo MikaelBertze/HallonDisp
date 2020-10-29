@@ -10,6 +10,7 @@ class WorkerFactory:
         'temperature-worker': TemperatureWorker,
         'door-worker': DoorWorker,
         'lunch-worker': LunchWorker,
+        'weather-worker': WeatherWorker,
     }
 
     def __init__(self, worker_configs):

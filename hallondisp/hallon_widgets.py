@@ -297,6 +297,8 @@ class WeatherToday(HallonWidget):
               fg=config['foreground'],
               font=("DejaVu Sans", 25, "bold")).grid(sticky=EW, row=row, column=0, ipady=2, ipadx=0)
 
+
+
         #
         # Label(self,
         #       text="12h",

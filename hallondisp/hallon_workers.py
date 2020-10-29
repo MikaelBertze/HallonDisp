@@ -244,8 +244,12 @@ class WeatherWorker(HallonWorker):
 
     def update(self):
         try:
-            self.weather = {}
-            pass
+            logger.info("Fetching weather")
+            legends = requests.get("https://api.met.no/weatherapi/weathericon/2.0/legends").json()
+            weather = requests.get("https://api.met.no/weatherapi/locationforecast/2.0/complete?lat=59.383251&lon=13.441460").json()
+
+            self.weather = {'legends': legends, 'weather': weather}
+            self.whenNewWeatherReported.on_next(self.weather)
         except:
             logger.warning("Could not fetch weather")
         finally:

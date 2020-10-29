@@ -141,7 +141,6 @@ class TemperatureWidget(HallonWidget):
         worker.whenMinMaxModified.subscribe(lambda x: self.handle_min_max_update(x))
 
     def handle_update(self, update):
-        logger.info(update)
         if update['sensor_id'] == self.sensor_id:
             self.temperatureValue.set("{:.1f}°C".format(update['temp']))
 
@@ -257,7 +256,6 @@ class Lunch(HallonWidget):
         self.handle_update(worker.lunch)
 
     def handle_update(self, update):
-        logger.info(update)
         if 'today' in update:
             lunch = update['today']
             lunch = lunch.replace(',', '\n')

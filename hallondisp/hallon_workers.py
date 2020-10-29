@@ -50,7 +50,7 @@ class HallonWorker:
 
 class DoorWorker(HallonWorker):
     def __init__(self, config, workers):
-        HallonWorker.__init__(self, config, workers)
+        HallonWorker.__init__(self, config, workers, 15)
         self.whenDoorReported = Subject()
         broker = mqtt_utils.get_broker(config['mqtt']['broker'])
         self.mqtt_updater = MqttListener(broker, config['mqtt']['topic'])
@@ -59,8 +59,12 @@ class DoorWorker(HallonWorker):
     def _init_worker(self):
         self.mqtt_updater.start()
 
+    def watchdog_message(self):
+        return "Door not reported:" + self.mqtt_updater._topic
+
     def handle_update(self, msg):
         try:
+            self.msg_count += 1
             data = json.loads(msg)
             logger.info(data)
             self.whenDoorReported.on_next(data)
@@ -71,7 +75,7 @@ class DoorWorker(HallonWorker):
 
 class PowerWorker(HallonWorker):
     def __init__(self, config, workers):
-        HallonWorker.__init__(self, config, workers, 10)
+        HallonWorker.__init__(self, config, workers, 15)
         self.whenPowerReported = Subject()
         self.whenNoPowerReported = Subject()
         broker = mqtt_utils.get_broker(config['mqtt']['broker'])
@@ -98,7 +102,7 @@ class PowerWorker(HallonWorker):
             tp = int(tick_period)
             wh_per_hit = 1 / float(1000) * 1000
             power = wh_per_hit * 3600 / float(tp / 1000)
-            logger.info("Reporting power")
+            logger.info(power)
             self.whenPowerReported.on_next(power)
 
         except Exception as ex:
@@ -153,7 +157,7 @@ class CumulativePowerWorker(HallonWorker):
 
 class TemperatureWorker(HallonWorker):
     def __init__(self, config, workers):
-        HallonWorker.__init__(self, config, workers, 5)
+        HallonWorker.__init__(self, config, workers, 15)
         self.whenTemperatureReported = Subject()
         self.whenMinMaxModified = Subject()
         self.whenNoTemperatureReported = Subject()

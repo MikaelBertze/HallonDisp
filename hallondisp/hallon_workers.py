@@ -50,7 +50,7 @@ class HallonWorker:
 
 class DoorWorker(HallonWorker):
     def __init__(self, config, workers):
-        HallonWorker.__init__(self, config, workers, 15)
+        HallonWorker.__init__(self, config, workers, 120)
         self.whenDoorReported = Subject()
         broker = mqtt_utils.get_broker(config['mqtt']['broker'])
         self.mqtt_updater = MqttListener(broker, config['mqtt']['topic'])
@@ -75,7 +75,7 @@ class DoorWorker(HallonWorker):
 
 class PowerWorker(HallonWorker):
     def __init__(self, config, workers):
-        HallonWorker.__init__(self, config, workers, 15)
+        HallonWorker.__init__(self, config, workers, 120)
         self.whenPowerReported = Subject()
         self.whenNoPowerReported = Subject()
         broker = mqtt_utils.get_broker(config['mqtt']['broker'])
@@ -157,7 +157,7 @@ class CumulativePowerWorker(HallonWorker):
 
 class TemperatureWorker(HallonWorker):
     def __init__(self, config, workers):
-        HallonWorker.__init__(self, config, workers, 15)
+        HallonWorker.__init__(self, config, workers, 120)
         self.whenTemperatureReported = Subject()
         self.whenMinMaxModified = Subject()
         self.whenNoTemperatureReported = Subject()

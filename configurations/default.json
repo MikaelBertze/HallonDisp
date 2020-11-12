@@ -265,22 +265,33 @@
         {
           "name": "timer",
           "config": {
+            "title": "Test",
+            "duration": 5,
+            "tone": "starwars"
+          }
+        },
+        {
+          "name": "timer",
+          "config": {
             "title": "Koka ägg",
-            "duration": 405
+            "duration": 405,
+            "tone": "starwars"
           }
         },
         {
           "name": "timer",
           "config": {
             "title": "Baka bröd",
-            "duration": 600
+            "duration": 600,
+            "tone": "starwars"
           }
         },
         {
           "name": "timer",
           "config": {
             "title": "Penne",
-            "duration": 660
+            "duration": 660,
+            "tone": "starwars"
           }
         }
       ]

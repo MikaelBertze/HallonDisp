@@ -5,6 +5,7 @@ from tkinter import Frame, StringVar, Label, Button, Text, END, WORD, CENTER
 from loguru import logger
 from hallondisp.hallon_workers import PowerWorker, CumulativePowerWorker, TemperatureWorker, DoorWorker, LunchWorker
 from hallondisp.utils import sound_player
+import requests
 
 
 class HallonWidget(Frame):
@@ -42,10 +43,11 @@ class TimerWidget(HallonWidget):
         self.start_time = None
         self.config(bg=config['background'])
         # noinspection PyTypeChecker
-        self.alarm_process: Process = None
         self.mode = "reset"
         self.name = config['title']
         self.run_name = config['title']
+        self.tone = config['tone']
+        self.tone_running = False
         self.text = StringVar()
         self.minutes = int(config['duration'] / 60)
         self.seconds = int(config['duration'] % 60)
@@ -67,8 +69,11 @@ class TimerWidget(HallonWidget):
         # self.config(bg="#333")
         self.button.config(bg="#333", activebackground='#333')
         self.text.set(f"{self.name} ({self.minutes:02}:{self.seconds:02})")
-        if self.alarm_process is not None and self.alarm_process.is_alive():
-            self.alarm_process.kill()
+        if self.tone_running:
+            url = "http://alarmthingy.local/stop"
+            logger.info(url)
+            requests.get("http://alarmthingy.local/stop")
+            self.tone_running = False
 
     def start(self):
         self.mode = "running"
@@ -86,11 +91,13 @@ class TimerWidget(HallonWidget):
         logger.info(self.mode)
 
     def alarm(self):
-        if self.mode == "running" and (self.alarm_process is None or not self.alarm_process.is_alive()):
+        if self.mode == "running" and not self.tone_running:
             logger.info("Starting alarm sound")
-            self.alarm_process = Process(target=sound_player.alarm)
-            self.alarm_process.start()
             self.button.config(bg="#f33", activebackground='#f33')
+            url = f"http://alarmthingy.local/{self.tone}"
+            logger.info(url)
+            requests.get(f"http://alarmthingy.local/{self.tone}")
+            self.tone_running = True
 
     def tick(self):
         if self.mode == "reset":

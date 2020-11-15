@@ -10,6 +10,7 @@ class WorkerFactory:
         'temperature-worker': TemperatureWorker,
         'door-worker': DoorWorker,
         'lunch-worker': LunchWorker,
+        "water-worker" : WaterWorker
     }
 
     def __init__(self, worker_configs):
@@ -59,7 +60,8 @@ class WidgetFactory:
         'temperature': TemperatureWidget,
         "timer": TimerWidget,
         "door": DoorWidget,
-        "lunch": Lunch
+        "lunch": Lunch,
+        "current_water": CurrentWater
     }
 
     def __init__(self, widget_configs, worker_factory: WorkerFactory):

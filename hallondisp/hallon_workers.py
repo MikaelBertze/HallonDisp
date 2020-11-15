@@ -108,6 +108,43 @@ class PowerWorker(HallonWorker):
         except Exception as ex:
             logger.error("Exception in mqtt thread: " + str(ex))
 
+
+class WaterWorker(HallonWorker):
+    def __init__(self, config, workers):
+        HallonWorker.__init__(self, config, workers, 120)
+        self.whenPowerReported = Subject()
+        self.whenNoPowerReported = Subject()
+        broker = mqtt_utils.get_broker(config['mqtt']['broker'])
+        self.mqtt_updater = MqttListener(broker, config['mqtt']['topic'])
+
+        self.mqtt_updater.OnMessage.subscribe(self.handle_update)
+
+    def watchdog_message(self):
+        return "Power not reported:" + self.mqtt_updater._topic
+
+    def _init_worker(self):
+        self.mqtt_updater.start()
+
+    def handle_update(self, msg):
+        try:
+            self.msg_count += 1
+            # expected structure: tickPeriod:123|counter:5
+            data = json.loads(msg)
+            if "power_tick_period" in data:
+                tick_period = data['power_tick_period']
+            else:
+                logger.info(f"Could not read power message {msg}")
+                return
+            tp = int(tick_period)
+            wh_per_hit = 1 / float(1000) * 1000
+            power = wh_per_hit * 3600 / float(tp / 1000)
+            logger.info(power)
+            self.whenPowerReported.on_next(power)
+
+        except Exception as ex:
+            logger.error("Exception in mqtt thread: " + str(ex))
+
+
 class CumulativePowerWorker(HallonWorker):
     def __init__(self, config, workers):
         HallonWorker.__init__(self, config, workers)
@@ -153,6 +190,44 @@ class CumulativePowerWorker(HallonWorker):
         timer = Timer(seconds_to_next_reset, self.reset_cumulative_usage)
         timer.daemon = True
         timer.start()
+
+
+class WaterWorker(HallonWorker):
+    def __init__(self, config, workers):
+        HallonWorker.__init__(self, config, workers, 120)
+        self.whenWaterReported = Subject()
+        self.whenNoWaterReported = Subject()
+        broker = mqtt_utils.get_broker(config['mqtt']['broker'])
+        self.mqtt_updater = MqttListener(broker, config['mqtt']['topic'])
+        self.mqtt_updater.OnMessage.subscribe(self.handle_update)
+
+    def watchdog_message(self):
+        return "Water not reported:" + self.mqtt_updater._topic
+
+    def _init_worker(self):
+        self.mqtt_updater.start()
+
+    def handle_update(self, msg):
+        try:
+            self.msg_count += 1
+            # expected structure: tickPeriod:123|counter:5
+            data = json.loads(msg)
+            if "consumption" in data and "t_diff" in data:
+                consumption_s = data['consumption']
+                t_diff_s = data['t_diff']
+            else:
+                logger.info(f"Could not read water message {msg}")
+                return
+            if int(t_diff_s) < 10:
+                logger.info(f"Strange water report. t_diff: {t_diff_s}")
+            consumption = float(consumption_s)
+            t_diff = int(t_diff_s)
+            l_per_minute = consumption / (t_diff/1000.0)
+
+            self.whenWaterReported.on_next(l_per_minute)
+
+        except Exception as ex:
+            logger.error("Exception in mqtt thread: " + str(ex))
 
 
 class TemperatureWorker(HallonWorker):

@@ -1,6 +1,6 @@
 {
   "app": {
-    "geometry": "720x480",
+    "geometry": "800x480",
     "fullscreen": false
   },
   "workers": {
@@ -14,6 +14,19 @@
         "mqtt": {
           "broker": "default",
           "topic": "/hallondisp/power"
+        }
+      }
+    },
+    "water-worker": {
+      "source": {
+        "type": "built-in",
+        "name": "water-worker"
+      },
+      "is-abstract": false,
+      "config": {
+        "mqtt": {
+          "broker": "default",
+          "topic": "/hallondisp/water"
         }
       }
     },
@@ -86,6 +99,20 @@
     }
   },
   "widgets": {
+    "current-water": {
+      "source": "built-in",
+      "type": "current_water",
+      "require_workers": [
+        {
+          "worker-name": "water-worker"
+        }
+      ],
+      "config": {
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 50
+      }
+    },
     "nominal-power": {
       "source": "built-in",
       "type": "nominal_power",
@@ -97,7 +124,7 @@
       "config": {
         "background": "#333",
         "foreground": "#fff",
-        "fontsize": 80
+        "fontsize": 70
       }
     },
     "cumulative-power-hour": {
@@ -212,6 +239,9 @@
         },
         {
           "name": "nominal-power"
+        },
+        {
+          "name": "current-water"
         },
         {
           "name": "temperature-outside",

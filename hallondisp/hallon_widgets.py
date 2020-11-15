@@ -3,7 +3,8 @@ import time
 from multiprocessing import Process
 from tkinter import Frame, StringVar, Label, Button, Text, END, WORD, CENTER
 from loguru import logger
-from hallondisp.hallon_workers import PowerWorker, CumulativePowerWorker, TemperatureWorker, DoorWorker, LunchWorker
+from hallondisp.hallon_workers import PowerWorker, CumulativePowerWorker, TemperatureWorker, DoorWorker, LunchWorker, \
+    WaterWorker
 from hallondisp.utils import sound_player
 import requests
 
@@ -130,11 +131,11 @@ class TemperatureWidget(HallonWidget):
         self.min_tempValue.set("---")
         self.max_tempValue.set("---")
 
-        Label(self,
-              text=config['title'],
-              bg=config['background'],
-              fg=config['foreground'],
-              font=("DejaVu Sans", config['titlefontsize'], "bold")).pack()
+        # Label(self,
+        #       text=config['title'],
+        #       bg=config['background'],
+        #       fg=config['foreground'],
+        #       font=("DejaVu Sans", config['titlefontsize'], "bold")).pack()
 
         self.temperature_label = Label(self,
                                        textvariable=self.temperatureValue,
@@ -181,6 +182,28 @@ class DoorWidget(HallonWidget):
             else:
                 self.door_label.config(fg=self.config['false_foreground'], bg=self.config['false_background'],
                                        activebackground=self.config['false_background'])
+
+
+class CurrentWater(HallonWidget):
+    def __init__(self, parent, config, workers):
+        HallonWidget.__init__(self, parent, workers)
+        self.waterValue = StringVar()
+        self.waterValue.set("---")
+        self.water_label = Label(self,
+                                 textvariable=self.waterValue,
+                                 bg=config['background'],
+                                 fg=config['foreground'],
+                                 font=("DejaVu Sans", config['fontsize'], "bold"))
+        self.water_label.pack()
+
+        worker: WaterWorker = self.get_worker('water-worker')
+        worker.whenWaterReported.subscribe(lambda x: self.handle_update(x))
+
+    def handle_update(self, update):
+        if (update > 10):
+            self.waterValue.set("{:.2f} l/m".format(update))
+        else:
+            self.waterValue.set("{:.3f} l/m".format(update))
 
 
 class CurrentPower(HallonWidget):

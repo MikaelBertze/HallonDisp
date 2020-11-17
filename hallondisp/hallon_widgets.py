@@ -219,7 +219,7 @@ class CurrentPower(HallonWidget):
         self.power_label.pack()
 
         worker: PowerWorker = self.get_worker('power-worker')
-        worker.whenPowerReported.subscribe(lambda x: self.handle_update(x))
+        worker.whenPowerReported.subscribe(lambda x: self.handle_update(x['power']))
 
     def handle_update(self, update):
         self.powerValue.set("{:.0f}W".format(update))

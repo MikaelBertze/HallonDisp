@@ -104,10 +104,10 @@ class PowerWorker(HallonWorker):
             tp = int(tick_period)
             wh_per_hit = 1 / float(1000) * 1000
             power = wh_per_hit * 3600 / float(tp / 1000)
-            logger.info(power)
-            self.whenPowerReported.on_next(power)
+            data['power'] = power
+            self.whenPowerReported.on_next(data)
 
-        except Exception as ex:
+        except Exception as ex
             logger.error("Exception in mqtt thread: " + str(ex))
 
 
@@ -131,7 +131,7 @@ class CumulativePowerWorker(HallonWorker):
     def power_reported(self, value):
         now = datetime.now()
         delta = now-self.start_time
-        self.measurements.append((delta.total_seconds(), value))
+        self.measurements.append((delta.total_seconds(), value['power']))
         values = [x[1] / 1000 for x in self.measurements]
         times = [x[0] / 60 / 60 for x in self.measurements]
         current_usage = np.trapz(values, times)

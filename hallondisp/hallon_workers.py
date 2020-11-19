@@ -21,6 +21,7 @@ class HallonWorker:
         self.initialized = False
         self.msg_count = 0
         self.watchdog = Timer(100000, None)
+        self.watchdog.daemon = True
 
     def timeout(self):
         if self.msg_count == 0:
@@ -30,6 +31,7 @@ class HallonWorker:
         self.msg_count = 0
         self.watchdog.cancel()
         self.watchdog = Timer(self.timeout_s, self.timeout)
+        self.watchdog.daemon = True
         self.watchdog.start()
 
     def watchdog_message(self):

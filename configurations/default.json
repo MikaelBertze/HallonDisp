@@ -1,8 +1,4 @@
 {
-  "app": {
-    "geometry": "800x480",
-    "fullscreen": false
-  },
   "workers": {
     "power-worker": {
       "source": {

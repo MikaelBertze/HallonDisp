@@ -4,7 +4,7 @@ from multiprocessing import Process
 from tkinter import Frame, StringVar, Label, Button, Text, END, WORD, CENTER
 from loguru import logger
 from hallondisp.hallon_workers import PowerWorker, CumulativePowerWorker, TemperatureWorker, DoorWorker, LunchWorker, \
-    WaterWorker
+    WaterWorker, CumulativeWaterWorker
 from hallondisp.utils import sound_player
 import requests
 
@@ -197,13 +197,41 @@ class CurrentWater(HallonWidget):
         self.water_label.pack()
 
         worker: WaterWorker = self.get_worker('water-worker')
-        worker.whenWaterReported.subscribe(lambda x: self.handle_update(x))
+        worker.whenWaterReported.subscribe(lambda x: self.handle_update(x['l_per_minute']))
 
     def handle_update(self, update):
         if (update > 10):
             self.waterValue.set("{:.2f} l/m".format(update))
         else:
             self.waterValue.set("{:.3f} l/m".format(update))
+
+
+class CumulativeWater(HallonWidget):
+    def __init__(self, parent, config, workers):
+        HallonWidget.__init__(self, parent, workers)
+        logger.info("CumulativeWater widget starting")
+
+        self.config(bg=config['background'])
+        self.waterValue = StringVar()
+        self.waterValue.set("---")
+
+        Label(self,
+              text=config['title'],
+              bg=config['background'],
+              fg=config['foreground'],
+              font=("DejaVu Sans", config['titlefontsize'], "bold")).pack()
+
+        self.water_label = Label(self,
+                                 textvariable=self.waterValue,
+                                 bg=config['background'],
+                                 fg=config['foreground'],
+                                 font=("DejaVu Sans", config['fontsize'], "bold"))
+        self.water_label.pack()
+        worker: CumulativeWaterWorker = self.get_worker('cumulative-water-worker')
+        worker.whenUsageReported.subscribe(lambda x: self.handle_update(x))
+
+    def handle_update(self, update):
+        self.waterValue.set("{:.2f} l".format(update))
 
 
 class CurrentPower(HallonWidget):

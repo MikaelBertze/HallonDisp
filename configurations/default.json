@@ -30,6 +30,31 @@
         }
       }
     },
+    "cumulative-water-worker": {
+      "source": {
+        "type": "built-in",
+        "name": "cumulative-water-worker"
+      },
+      "is-abstract": true,
+      "require-workers": [
+        "water-worker"
+      ],
+      "config": {}
+    },
+    "cumulative-water-worker-hour": {
+      "extends": "cumulative-water-worker",
+      "is-abstract": false,
+      "config": {
+        "reset-mode": "hour"
+      }
+    },
+    "cumulative-water-worker-day": {
+      "extends": "cumulative-water-worker",
+      "is-abstract": false,
+      "config": {
+        "reset-mode": "day"
+      }
+    },
     "cumulative-power-worker": {
       "source": {
         "type": "built-in",
@@ -111,6 +136,38 @@
         "background": "#333",
         "foreground": "#fff",
         "fontsize": 50
+      }
+    },
+    "cumulative-water-hour": {
+      "source": "built-in",
+      "type": "cumulative_water",
+      "require_workers": [
+        {
+          "worker-name": "cumulative-water-worker-hour",
+          "worker-alias": "cumulative-water-worker"
+        }
+      ],
+      "config": {
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 60,
+        "titlefontsize": 30
+      }
+    },
+    "cumulative-water-day": {
+      "source": "built-in",
+      "type": "cumulative_water",
+      "require_workers": [
+        {
+          "worker-name": "cumulative-water-worker-day",
+          "worker-alias": "cumulative-water-worker"
+        }
+      ],
+      "config": {
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 60,
+        "titlefontsize": 30
       }
     },
     "nominal-power": {
@@ -283,6 +340,26 @@
         },
         {
           "name": "cumulative-power-day",
+          "config": {
+            "title": "Dagens förbrukning"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Water page",
+      "widgets": [
+        {
+          "name": "current-water"
+        },
+        {
+          "name": "cumulative-water-hour",
+          "config": {
+            "title": "Timmens förbrukning"
+          }
+        },
+        {
+          "name": "cumulative-water-day",
           "config": {
             "title": "Dagens förbrukning"
           }

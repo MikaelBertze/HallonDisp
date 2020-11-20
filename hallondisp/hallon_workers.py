@@ -20,8 +20,7 @@ class HallonWorker:
         self.timeout_s = timeout_s
         self.initialized = False
         self.msg_count = 0
-        self.watchdog = Timer(100000, None)
-        self.watchdog.daemon = True
+        self.watchdog = None
 
     def timeout(self):
         if self.msg_count == 0:
@@ -29,13 +28,15 @@ class HallonWorker:
         else:
             self.whenWatchDogReport.on_next({ 'state': True, 'message': "", 'hash': hash(self)})
         self.msg_count = 0
-        self.watchdog.cancel()
+        if self.watchdog is not None:
+            self.watchdog.cancel()
         self.watchdog = Timer(self.timeout_s, self.timeout)
         self.watchdog.daemon = True
         self.watchdog.start()
 
     def watchdog_message(self):
-        raise NotImplementedError("You should implement this...")
+        if self.timeout_s > 0:
+            raise NotImplementedError("You should implement this...")
 
     def init_worker(self):
         logger.info("initializing worker")
@@ -43,7 +44,6 @@ class HallonWorker:
             self._init_worker()
             self.initialized = True
             if self.timeout_s > 0:
-                self.has_watchdog = True
                 self.timeout()
 
     def _init_worker(self):
@@ -106,8 +106,7 @@ class PowerWorker(HallonWorker):
             power = wh_per_hit * 3600 / float(tp / 1000)
             data['power'] = power
             self.whenPowerReported.on_next(data)
-
-        except Exception as ex
+        except Exception as ex:
             logger.error("Exception in mqtt thread: " + str(ex))
 
 
@@ -189,11 +188,54 @@ class WaterWorker(HallonWorker):
             consumption = float(consumption_s)
             t_diff = int(t_diff_s)
             l_per_minute = consumption / (t_diff/1000.0) * 60
-
-            self.whenWaterReported.on_next(l_per_minute)
+            data['l_per_minute'] = l_per_minute
+            self.whenWaterReported.on_next(data)
 
         except Exception as ex:
             logger.error("Exception in mqtt thread: " + str(ex))
+
+
+class CumulativeWaterWorker(HallonWorker):
+    def __init__(self, config, workers):
+        HallonWorker.__init__(self, config, workers)
+        assert "water-worker" in workers, "This worker require water-worker"
+        self.reset_mode = config['reset-mode']
+        self.total = 0
+        self.whenUsageReported = Subject()
+        self.start_time = None
+        water_worker: WaterWorker = workers['water-worker']
+        water_worker.whenWaterReported.subscribe(self.water_reported)
+
+    def _init_worker(self):
+        self.reset_cumulative_usage()
+        logger.info("Cumulative water worker initialized")
+
+    def water_reported(self, value):
+        l_diff = float(value['consumption'])
+        if l_diff > 0.000001:
+            self.total += l_diff
+            self.whenUsageReported.on_next(self.total)
+
+    def reset_cumulative_usage(self):
+        logger.info("Cumulative worker reset")
+        self.total = 0
+        self.whenUsageReported.on_next(0)
+        self.start_time = datetime.now()
+        seconds_to_next_reset = None
+
+        if self.reset_mode == "minute":
+            seconds_to_next_reset = 60 - self.start_time.second
+        if self.reset_mode == "hour":
+            seconds_to_next_reset = 3600 - self.start_time.minute * 60 - self.start_time.second
+        elif self.reset_mode == "day":
+            seconds_to_next_reset = 86400 - self.start_time.hour * 3600 - self.start_time.minute * 60 - self.start_time.second
+
+        assert seconds_to_next_reset is not None, f"Unsupported reset-mode: {self.reset_mode}"
+
+        logger.info(f"Reset of cumulative water usage in {seconds_to_next_reset}s.")
+        timer = Timer(seconds_to_next_reset, self.reset_cumulative_usage)
+        timer.daemon = True
+        timer.start()
 
 
 class TemperatureWorker(HallonWorker):

@@ -1,4 +1,7 @@
 {
+  "page-handler": {
+    "page-timeout": 120
+  },
   "workers": {
     "power-worker": {
       "source": {

@@ -20,6 +20,9 @@ class HallonPage(Frame):
 class MainApp(Tk):
     def __init__(self, config):
         Tk.__init__(self)
+
+        self.page_timeout = config['page-handler']['page-timeout']
+        self.page_timer = None
         self.worker_factory = WorkerFactory(config['workers'])
         self.widget_factory = WidgetFactory(config['widgets'], self.worker_factory)
         self.pages = []
@@ -96,10 +99,25 @@ class MainApp(Tk):
         self.pages.append(page)
 
     def next_frame(self, forward):
-        self.current_page += 1 if forward else -1
-        self.current_page %= len(self.pages)
+        pagenum = self.current_page + 1 if forward else -1
+        pagenum %= len(self.pages)
 
-        logger.info("Frame switch: " + str(self.current_page))
+        logger.info("Frame switch: " + str(pagenum))
+        self.set_frame(pagenum)
 
+    def set_frame(self, num):
+        if self.page_timer is not None:
+            self.after_cancel(self.page_timer)
+        logger.info(f"Setting frame to page: {num}")
+        assert num < len(self.pages), f"page {num} does not exist"
+        self.current_page = num
         page = self.pages[self.current_page]
         page.tkraise()
+        if num != 0:
+            logger.info(f"Going back in {self.page_timeout} s")
+            self.page_timer = self.after(self.page_timeout * 1000, self.set_frame, 0)
+
+
+
+
+

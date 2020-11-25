@@ -1,21 +1,22 @@
 import asyncio
 from time import time, sleep
 import mariadb
-from hallondisp.hallon_workers import PowerWorker
+from hallondisp.hallon_workers import PowerWorker, WaterWorker
 from hallondisp.factories import WorkerFactory
 import hallondisp.configreader as config_reader
-#workers
 
-def add_to_db(conn, sensor_id, value1, value2):
-    ts = time()
+
+def add_to_db(conn, sensor_id, value1, value2=0.0):
     cur = conn.cursor()
     cur.execute(
-        "INSERT INTO measurements (TimeStamp_ms,SensorId,Value1,Value2) VALUES (?, ?, ?, ?)",
-        (int(ts*1000), sensor_id, float(value1), 0.0))
+        "INSERT INTO measurements (TimeStamp,SensorId,Value1,Value2) VALUES (CURRENT_TIMESTAMP(3), ?, ?, ?)",
+        (sensor_id, value1, value2))
     conn.commit()
 
-    print ("done")
-    print(ts)
+
+def handle_water_report(x):
+    if float(x['consumption']) > .001:
+        add_to_db(conn, 'water', float(x['consumption']), float(x['t_diff']) / 1000.0)
 
 
 if __name__ == "__main__":
@@ -24,7 +25,7 @@ if __name__ == "__main__":
         conn = mariadb.connect(
             user="hallondisp",
             password="hallondisp",
-            host="localhost",
+            host="127.0.0.1",
             port=3306,
             database="hallondisp"
         )
@@ -32,23 +33,14 @@ if __name__ == "__main__":
         print(f"Error connecting to MariaDB Platform: {e}")
         exit(1)
 
-
-    #read config
     config = config_reader.read_json_config('./hallondisp.json')
     worker_factory = WorkerFactory(config['workers'])
 
-    worker: PowerWorker = worker_factory.build_worker("power-worker")
-    worker.whenPowerReported.subscribe(lambda x: add_to_db(conn, 'power', x['power'], None))
+    power_worker: PowerWorker = worker_factory.build_worker("power-worker")
+    power_worker.whenPowerReported.subscribe(lambda x: add_to_db(conn, 'power', float(x['power']), None))
 
-    #worker.init_worker()
-
+    water_worker: WaterWorker = worker_factory.build_worker("water-worker")
+    water_worker.whenWaterReported.subscribe(handle_water_report)
 
     while True:
         sleep(1)
-    # loop = asyncio.get_event_loop()
-    # try:
-    #     loop.run_forever()
-    # finally:
-    #     worker.kill()
-    #     loop.close()
-    #

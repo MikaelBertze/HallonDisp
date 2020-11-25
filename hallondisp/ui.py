@@ -99,7 +99,7 @@ class MainApp(Tk):
         self.pages.append(page)
 
     def next_frame(self, forward):
-        pagenum = self.current_page + 1 if forward else -1
+        pagenum = self.current_page + (1 if forward else -1)
         pagenum %= len(self.pages)
 
         logger.info("Frame switch: " + str(pagenum))

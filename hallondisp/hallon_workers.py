@@ -185,6 +185,7 @@ class WaterWorker(HallonWorker):
                 return
             if int(t_diff_s) < 10:
                 logger.info(f"Strange water report. t_diff: {t_diff_s}")
+                return
             consumption = float(consumption_s)
             t_diff = int(t_diff_s)
             l_per_minute = consumption / (t_diff/1000.0) * 60

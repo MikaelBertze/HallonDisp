@@ -24,9 +24,9 @@ class HallonWorker:
 
     def timeout(self):
         if self.msg_count == 0:
-            self.whenWatchDogReport.on_next({ 'state': False, 'message': self.watchdog_message(), 'hash': hash(self)})
+            self.whenWatchDogReport.on_next({'state': False, 'message': self.watchdog_message(), 'hash': hash(self)})
         else:
-            self.whenWatchDogReport.on_next({ 'state': True, 'message': "", 'hash': hash(self)})
+            self.whenWatchDogReport.on_next({'state': True, 'message': "", 'hash': hash(self)})
         self.msg_count = 0
         if self.watchdog is not None:
             self.watchdog.cancel()
@@ -178,15 +178,13 @@ class WaterWorker(HallonWorker):
             # expected structure: tickPeriod:123|counter:5
             data = json.loads(msg)
             if "consumption" in data and "t_diff" in data:
-                consumption_s = data['consumption']
-                t_diff_s = data['t_diff']
+                consumption = data['consumption']
+                t_diff = data['t_diff']
             else:
                 logger.info(f"Could not read water message {msg}")
                 return
-            if int(t_diff_s) < 10:
-                logger.info(f"Strange water report. t_diff: {t_diff_s}")
-            consumption = float(consumption_s)
-            t_diff = int(t_diff_s)
+            if t_diff < 10:
+                logger.info(f"Strange water report. t_diff: {t_diff}")
             l_per_minute = consumption / (t_diff/1000.0) * 60
             data['l_per_minute'] = l_per_minute
             self.whenWaterReported.on_next(data)
@@ -259,23 +257,10 @@ class TemperatureWorker(HallonWorker):
 
     def handle_update(self, msg):
         self.msg_count += 1
-        logger.info(msg)
         data = json.loads(msg)
-        #key, value = (x.strip() for x in msg.split(':'))
         sensor_id = data['id']
         temp = float(data["temp"])
-        #day = datetime.day
-        #if self.day != day:
-        #    self.day = day
-        #    self.todayMinValue = 100
-        #    self.todayMaxValue = -100
-        #if temp < self.todayMinValue:
-        #    self.todayMinValue = temp
-        #    self.whenMinMaxModified.on_next((self.todayMinValue, self.todayMaxValue))
-        #if temp > self.todayMaxValue:
-        #    self.todayMaxValue = temp
-        #    self.whenMinMaxModified.on_next((self.todayMinValue, self.todayMaxValue))
-        self.whenTemperatureReported.on_next({ 'sensor_id': sensor_id, 'temp': temp})
+        self.whenTemperatureReported.on_next({'sensor_id': sensor_id, 'temp': temp})
 
 
 class LunchWorker(HallonWorker):
@@ -290,8 +275,8 @@ class LunchWorker(HallonWorker):
     def update(self):
         try:
             # Find url for 'matsedel'
-            URL = 'http://skola.karlstad.se/hultsbergsskolan4a/matsedel/'
-            page = requests.get(URL)
+            url = 'http://skola.karlstad.se/hultsbergsskolan4a/matsedel/'
+            page = requests.get(url)
             soup = BeautifulSoup(page.content, 'html.parser')
             x = soup.find('object')
             matsedel_url = x['data']
@@ -304,7 +289,7 @@ class LunchWorker(HallonWorker):
             logger.info(f"Lunch: {lunch}")
             self.lunch = {'today': lunch}
             self.whenNewLunchReported.on_next(self.lunch)
-        except:
+        except Exception:
             logger.warning("Could not fetch todays lunch")
         finally:
             timer = Timer(60 * 15, self.update)
@@ -318,6 +303,6 @@ class LunchWorker(HallonWorker):
             x = soup.find('div', string=day_s)
             y = x.parent.parent.find('div', class_="app-daymenu-name")
             lunch = y.text
-        except:
+        except Exception:
             return "Nada"
         return lunch

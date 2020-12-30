@@ -4,7 +4,7 @@ from multiprocessing import Process
 from tkinter import Frame, StringVar, Label, Button, Text, END, WORD, CENTER
 from loguru import logger
 from hallondisp.hallon_workers import PowerWorker, CumulativePowerWorker, TemperatureWorker, DoorWorker, LunchWorker, \
-    WaterWorker, CumulativeWaterWorker
+    WaterWorker, CumulativeWaterWorker, RelayWorker
 from hallondisp.utils import sound_player
 import requests
 
@@ -332,6 +332,85 @@ class Warnings(HallonWidget):
                   bg="#333",
                   fg="#f00",
                   font=("DejaVu Sans", 15, "bold")).pack()
+
+
+class RelayWidget(HallonWidget):
+    def __init__(self, parent, config, workers):
+        HallonWidget.__init__(self, parent, workers)
+
+        self.mode = 0
+        self.state = False
+
+        self.start_time = None
+        self.config(bg=config['background'])
+        # noinspection PyTypeChecker
+        self.teslatext = StringVar()
+        self.teslatext.set("TESLA")
+        self.teslabutton = Button(self,
+                             textvariable=self.teslatext,
+                             bg=config['background'],
+                             fg=config['foreground'],
+                             activebackground=config['background'],
+                             activeforeground=config['foreground'],
+                             font=("DejaVu Sans", config['fontsize'], "bold"),
+                             command=lambda: self.toggle_tesla(),
+                             pady=30,
+                             highlightthickness=0, bd=0)
+        self.teslabutton.pack(pady=30)
+
+        self.heatertext = StringVar()
+        self.heatertext.set("MOTORVÄRMARE")
+        self.heaterbutton = Button(self,
+                             textvariable=self.heatertext,
+                             bg=config['background'],
+                             fg=config['foreground'],
+                             activebackground=config['background'],
+                             activeforeground=config['foreground'],
+                             font=("DejaVu Sans", config['fontsize'], "bold"),
+                             command=lambda: self.toggle_heater(),
+                             pady=30,
+                             highlightthickness=0, bd=0)
+        self.heaterbutton.pack(pady=30)
+
+        worker: RelayWorker = self.get_worker('relay-worker')
+        worker.whenRelayReported.subscribe(lambda x: self.handle_update(x))
+
+    def handle_update(self, state):
+        self.state = state
+        logger.info(state)
+        bg = "#f33" if state else "#3f3"
+        if self.mode == 0:
+            self.teslabutton.config(bg=bg, activebackground=bg)
+            self.heaterbutton.config(bg=bg, activebackground=bg)
+        if self.mode == 1:
+            self.teslabutton.config(bg=bg, activebackground=bg)
+            pass
+        if self.mode == 2:
+            self.heaterbutton.config(bg=bg, activebackground=bg)
+
+    def toggle_tesla(self):
+        logger.info("tesla toggle")
+        self.heaterbutton["state"] = "disabled"
+        self.mode = 1
+        if self.state:
+            requests.get("http://relaythingy.local/stop")
+            self.heaterbutton["state"] = "normal"
+        else:
+            requests.get("http://relaythingy.local/start")
+            self.heaterbutton["state"] = "disabled"
+
+    def toggle_heater(self):
+        logger.info("heater toggle")
+        self.mode = 2
+        if self.state:
+            requests.get("http://relaythingy.local/stop")
+            self.teslabutton["state"] = "normal"
+        else:
+            requests.get("http://relaythingy.local/start")
+            self.teslabutton["state"] = "disabled"
+
+
+
 
 
 

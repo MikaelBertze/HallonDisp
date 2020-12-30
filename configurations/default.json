@@ -16,6 +16,19 @@
         }
       }
     },
+    "relay-worker": {
+      "source": {
+        "type": "built-in",
+        "name": "relay-worker"
+      },
+      "is-abstract": false,
+      "config": {
+        "mqtt": {
+          "broker": "default",
+          "topic": "relaythingy/temp"
+        }
+      }
+    },
     "water-worker": {
       "source": {
         "type": "built-in",
@@ -284,6 +297,20 @@
         "titlefontsize" : 40,
         "fontsize": 30
       }
+    },
+    "relay_buttons": {
+      "source": "built-in",
+      "type": "relay_buttons",
+      "require_workers": [
+        {
+          "worker-name": "relay-worker"
+        }
+      ],
+      "config": {
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 30
+      }
     }
   },
   "pages": [
@@ -398,6 +425,17 @@
             "title": "Penne",
             "duration": 660,
             "tone": "starwars"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Relay page",
+      "widgets": [
+        {
+          "name": "relay_buttons",
+          "config": {
+            "title": "Test"
           }
         }
       ]

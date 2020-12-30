@@ -306,3 +306,35 @@ class LunchWorker(HallonWorker):
         except Exception:
             return "Nada"
         return lunch
+
+
+class RelayWorker(HallonWorker):
+    def __init__(self, config, workers):
+        HallonWorker.__init__(self, config, workers, 120)
+        self.whenRelayReported = Subject()
+        broker = mqtt_utils.get_broker(config['mqtt']['broker'])
+        self.mqtt_updater = MqttListener(broker, config['mqtt']['topic'])
+        self.mqtt_updater.OnMessage.subscribe(self.handle_update)
+
+    def watchdog_message(self):
+        return "Power not reported:" + self.mqtt_updater._topic
+
+    def _init_worker(self):
+        self.mqtt_updater.start()
+
+    def handle_update(self, msg):
+        try:
+            self.msg_count += 1
+            # expected structure: tickPeriod:123|counter:5
+            data = json.loads(msg)
+            if "state" in data:
+                state = True if data['state'] == "ON" else False
+                logger.info(f"STATE: {state}")
+                self.whenRelayReported.on_next(state)
+            else:
+                logger.info(f"Could not read power message {msg}")
+                return
+
+        except Exception as ex:
+            logger.error("Exception in mqtt thread: " + str(ex))
+

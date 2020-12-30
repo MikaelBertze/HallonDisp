@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import datetime
 import time
 from multiprocessing import Process
 from tkinter import Frame, StringVar, Label, Button, Text, END, WORD, CENTER
@@ -15,6 +16,8 @@ class HallonWidget(Frame):
         self.workers = workers
 
     def get_worker(self, name):
+        for w in self.workers.keys():
+            logger.warning(w)
         return self.workers[name]
 
 
@@ -372,13 +375,58 @@ class RelayWidget(HallonWidget):
                              highlightthickness=0, bd=0)
         self.heaterbutton.pack(pady=30)
 
+        self.paused = False
+        self.pause_minute = 0
+
         worker: RelayWorker = self.get_worker('relay-worker')
         worker.whenRelayReported.subscribe(lambda x: self.handle_update(x))
+
+        hour_power: CumulativePowerWorker = self.get_worker('cumulative-power-worker-hour')
+        hour_power.whenUsageReported.subscribe(lambda x: self.power_report(x))
+
+    def power_report(self, x):
+        now = datetime.datetime.now()
+        m = now.minute
+        l = 3.5
+        limit = l / 60 * m
+
+        logger.info(f"Limit: {limit} | Current: {x}")
+        if not self.paused and m < 15:
+            return
+
+        if x > limit:
+            if not self.paused:
+                self.pause(m)
+
+        else:
+            if x < limit * 1.1 and (m < self.pause_minute or m > self.pause_minute + 15):
+                self.unpause()
+
+    def unpause(self):
+        if self.mode > 0:
+            self.paused = False
+            self.pause_minute = 0
+            requests.get("http://relaythingy.local/start")
+
+    def pause(self, m):
+        bg = "#33f"
+        self.paused = True
+        self.pause_minute = m
+        requests.get("http://relaythingy.local/stop")
+
 
     def handle_update(self, state):
         self.state = state
         logger.info(state)
         bg = "#f33" if state else "#3f3"
+        pausebg = "#00f"
+
+        if self.paused:
+            logger.info(f"Pause mode {self.pause_minute}")
+            self.teslabutton.config(bg=pausebg, activebackground=pausebg)
+            self.heaterbutton.config(bg=pausebg, activebackground=pausebg)
+            return
+
         if self.mode == 0:
             self.teslabutton.config(bg=bg, activebackground=bg)
             self.heaterbutton.config(bg=bg, activebackground=bg)
@@ -389,25 +437,34 @@ class RelayWidget(HallonWidget):
             self.heaterbutton.config(bg=bg, activebackground=bg)
 
     def toggle_tesla(self):
+        bg = "#3ff"
         logger.info("tesla toggle")
         self.heaterbutton["state"] = "disabled"
-        self.mode = 1
-        if self.state:
+        if self.state or self.paused:
+            self.mode = 0
+            self.paused = False
+            self.pause_minute = 0
             requests.get("http://relaythingy.local/stop")
             self.heaterbutton["state"] = "normal"
         else:
+            self.mode = 1
             requests.get("http://relaythingy.local/start")
             self.heaterbutton["state"] = "disabled"
+            self.heaterbutton.config(bg=bg, activebackground=bg)
 
     def toggle_heater(self):
+        bg = "#3ff"
         logger.info("heater toggle")
-        self.mode = 2
         if self.state:
+            self.mode = 0
             requests.get("http://relaythingy.local/stop")
             self.teslabutton["state"] = "normal"
         else:
+            self.mode = 2
             requests.get("http://relaythingy.local/start")
             self.teslabutton["state"] = "disabled"
+            self.teslabutton.config(bg=bg, activebackground=bg)
+
 
 
 

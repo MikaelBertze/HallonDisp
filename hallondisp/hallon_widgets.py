@@ -134,11 +134,12 @@ class TemperatureWidget(HallonWidget):
         self.min_tempValue.set("---")
         self.max_tempValue.set("---")
 
-        # Label(self,
-        #       text=config['title'],
-        #       bg=config['background'],
-        #       fg=config['foreground'],
-        #       font=("DejaVu Sans", config['titlefontsize'], "bold")).pack()
+        if config['title']:
+            Label(self,
+                  text=config['title'],
+                  bg=config['background'],
+                  fg=config['foreground'],
+                  font=("DejaVu Sans", config['titlefontsize'], "bold")).pack()
 
         self.temperature_label = Label(self,
                                        textvariable=self.temperatureValue,

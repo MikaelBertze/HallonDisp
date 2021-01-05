@@ -248,6 +248,23 @@
         "titlefontsize": 30
       }
     },
+    "temperature-guestroom": {
+      "source": "built-in",
+      "type": "temperature",
+      "require_workers": [
+        {
+          "worker-name": "temperature-worker",
+          "worker-alias": "temperature-worker"
+        }
+      ],
+      "config": {
+        "sensor_id": "g_room",
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 60,
+        "titlefontsize": 30
+      }
+    },
     "local_time": {
       "source": "built-in",
       "type": "current_time",
@@ -335,7 +352,7 @@
         {
           "name": "temperature-outside",
           "config": {
-            "title": "Ute-temperatur"
+            "title": ""
           }
         },
         {
@@ -431,6 +448,23 @@
             "title": "Penne",
             "duration": 660,
             "tone": "starwars"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Temperatures page",
+      "widgets": [
+        {
+          "name": "temperature-outside",
+          "config": {
+            "title": "Ute"
+          }
+        },
+        {
+          "name": "temperature-guestroom",
+          "config": {
+            "title": "Gästrum"
           }
         }
       ]

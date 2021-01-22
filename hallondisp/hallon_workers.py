@@ -55,7 +55,7 @@ class DoorWorker(HallonWorker):
         HallonWorker.__init__(self, config, workers, 120)
         self.whenDoorReported = Subject()
         broker = mqtt_utils.get_broker(config['mqtt']['broker'])
-        self.mqtt_updater = MqttListener(broker, [config['mqtt']['topic']])
+        self.mqtt_updater = MqttListener(broker, config['mqtt']['topics'])
         self.mqtt_updater.OnMessage.subscribe(self.handle_update)
 
     def _init_worker(self):
@@ -69,7 +69,8 @@ class DoorWorker(HallonWorker):
             self.msg_count += 1
             data = json.loads(msg[1])
             logger.info(data)
-            self.whenDoorReported.on_next(data)
+            for x in data:
+                self.whenDoorReported.on_next(x)
 
         except Exception as ex:
             logger.error("Exception in mqtt thread: " + str(ex))

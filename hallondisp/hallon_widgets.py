@@ -2,7 +2,7 @@
 import datetime
 import time
 from multiprocessing import Process
-from tkinter import Frame, StringVar, Label, Button, Text, END, WORD, CENTER
+from tkinter import Frame, StringVar, Label, Button, Text, END, WORD, CENTER, LEFT
 from loguru import logger
 from hallondisp.hallon_workers import PowerWorker, CumulativePowerWorker, TemperatureWorker, DoorWorker, LunchWorker, \
     WaterWorker, CumulativeWaterWorker, RelayWorker
@@ -159,6 +159,28 @@ class TemperatureWidget(HallonWidget):
     def handle_min_max_update(self, min_max):
         self.min_tempValue.set("{:.1f}°C".format(min_max[0]))
         self.max_tempValue.set("{:.1f}°C".format(min_max[1]))
+
+
+class DoorsWidget(HallonWidget):
+    def __init__(self, parent, config, workers):
+        HallonWidget.__init__(self, parent, workers)
+        self.config(bg=config['background'])
+        logger.warning(config.keys())
+        for door_config in config['doors']:
+            dc = {
+                'title': door_config['title'],
+                'door-id': door_config['door-id'],
+                'true_foreground': config['true_foreground'],
+                'fontsize': config['fontsize'],
+                'true_background': config['true_background'],
+                'false_foreground': config['false_foreground'],
+                'false_background': config['false_background'],
+                'true_foreground': config['true_foreground']
+            }
+            logger.info(f"Setting up door widget for {door_config['title']}")
+            w = DoorWidget(self, dc, workers)
+            w.pack(side=LEFT, padx=5);
+
 
 
 class DoorWidget(HallonWidget):

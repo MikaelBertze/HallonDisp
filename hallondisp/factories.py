@@ -61,7 +61,7 @@ class WidgetFactory:
         'cumulative_power': CumulativePower,
         'temperature': TemperatureWidget,
         "timer": TimerWidget,
-        "door": DoorWidget,
+        "doors": DoorsWidget,
         "lunch": Lunch,
         "current_water": CurrentWater,
         'cumulative_water': CumulativeWater,

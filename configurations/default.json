@@ -124,7 +124,7 @@
       "config": {
         "mqtt": {
           "broker": "default",
-          "topic": "house/garage/door"
+          "topics": ["house/garage/door", "house/basement/doors", "house/foodstore/doors"]
         }
       }
     },
@@ -321,20 +321,21 @@
         "duration": 0
       }
     },
-    "garage-door": {
+    "doors": {
       "source": "built-in",
-      "type": "door",
+      "type": "doors",
       "require_workers": [
         {
           "worker-name": "door-worker"
         }
       ],
       "config": {
+        "background": "#333",
         "true_background": "#333",
         "true_foreground": "#f00",
         "false_background": "#333",
         "false_foreground": "#0f0",
-        "fontsize": 40
+        "fontsize": 25
       }
     },
     "lunch": {
@@ -390,10 +391,23 @@
           }
         },
         {
-          "name": "garage-door",
-          "config": {
-            "title": "Garageport",
-            "door-id": "garage"
+          "name": "doors",
+          "config":
+          {
+            "doors" : [
+              {
+                "title": "Garage",
+                "door-id": "garage"
+              },
+              {
+                "title": "Källare",
+                "door-id": "basement_1"
+              },
+              {
+                "title": "Matkällare",
+                "door-id": "foodstore"
+              }
+            ]
           }
         }
       ]

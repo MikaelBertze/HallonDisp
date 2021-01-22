@@ -18,12 +18,12 @@ def get_broker(name):
 
 class MqttListener:
 
-    def __init__(self, broker, topic):
+    def __init__(self, broker, topics):
         self.OnMessage = Subject()
         self._server = broker['host']
         self._user = broker['user']
         self._pass = broker['pass']
-        self._topic = topic
+        self._topics = topics
         logger.info("Starting MQTT updater thread")
         self.client = mqtt.Client(userdata=self)
         self.client.username_pw_set(self._user, self._pass)
@@ -35,13 +35,14 @@ class MqttListener:
         self.client.loop_start()
  
     def on_connect(self, client, userdata, flags, rc):
-        logger.info(f"Connected to {userdata._topic} with result code {str(rc)}")
-        logger.info(userdata._topic)
-        client.subscribe(userdata._topic)
+        logger.info(f"Connected to {self._server} with result code {str(rc)}")
+        for topic in self._topics:
+            logger.info(f"Subscribing: {topic}")
+            client.subscribe(topic)
 
     def on_message(self, client, userdata, msg):
         try:
             received = msg.payload.decode('ascii')
-            self.OnMessage.on_next(received)
+            self.OnMessage.on_next((msg.topic, received))
         except:
             pass

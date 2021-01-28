@@ -467,6 +467,7 @@ class RelayWidget(HallonWidget):
             self.mode = 0
             self.paused = False
             self.pause_minute = 0
+            logger.info("tesla off")
             requests.get("http://relaythingy.local/stop")
             self.heaterbutton["state"] = "normal"
         else:

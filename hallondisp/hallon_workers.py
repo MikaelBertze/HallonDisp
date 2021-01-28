@@ -332,7 +332,9 @@ class RelayWorker(HallonWorker):
         try:
             self.msg_count += 1
             # expected structure: tickPeriod:123|counter:5
-            data = json.loads(msg)
+            logger.info(msg)
+
+            data = json.loads(msg[1])
             if "state" in data:
                 state = True if data['state'] == "ON" else False
                 logger.info(f"STATE: {state}")

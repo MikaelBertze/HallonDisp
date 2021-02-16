@@ -14,6 +14,8 @@ class HallonWidget(Frame):
     def __init__(self, parent, workers):
         Frame.__init__(self, parent)
         self.workers = workers
+        self.sticky = False
+
 
     def get_worker(self, name):
         for w in self.workers.keys():
@@ -78,12 +80,14 @@ class TimerWidget(HallonWidget):
             logger.info(url)
             requests.get("http://alarmthingy.local/stop")
             self.tone_running = False
+        self.sticky = False
 
     def start(self):
         self.mode = "running"
         self.start_time = time.time()
         self.tick()
         self.button.config(bg="#FFD700", activebackground='#FFD700')
+        self.sticky = True
 
     def toggle(self):
         logger.info("toggle")

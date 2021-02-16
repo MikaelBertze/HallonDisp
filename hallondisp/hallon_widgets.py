@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
+import datetime
 import time
 from multiprocessing import Process
-from tkinter import Frame, StringVar, Label, Button, Text, END, WORD, CENTER
+from tkinter import Frame, StringVar, Label, Button, Text, END, WORD, CENTER, LEFT
 from loguru import logger
 from hallondisp.hallon_workers import PowerWorker, CumulativePowerWorker, TemperatureWorker, DoorWorker, LunchWorker, \
-    WaterWorker, CumulativeWaterWorker
+    WaterWorker, CumulativeWaterWorker, RelayWorker
 from hallondisp.utils import sound_player
 import requests
 
@@ -13,8 +14,12 @@ class HallonWidget(Frame):
     def __init__(self, parent, workers):
         Frame.__init__(self, parent)
         self.workers = workers
+        self.sticky = False
+
 
     def get_worker(self, name):
+        for w in self.workers.keys():
+            logger.warning(w)
         return self.workers[name]
 
 
@@ -75,12 +80,14 @@ class TimerWidget(HallonWidget):
             logger.info(url)
             requests.get("http://alarmthingy.local/stop")
             self.tone_running = False
+        self.sticky = False
 
     def start(self):
         self.mode = "running"
         self.start_time = time.time()
         self.tick()
         self.button.config(bg="#FFD700", activebackground='#FFD700')
+        self.sticky = True
 
     def toggle(self):
         logger.info("toggle")
@@ -131,11 +138,12 @@ class TemperatureWidget(HallonWidget):
         self.min_tempValue.set("---")
         self.max_tempValue.set("---")
 
-        # Label(self,
-        #       text=config['title'],
-        #       bg=config['background'],
-        #       fg=config['foreground'],
-        #       font=("DejaVu Sans", config['titlefontsize'], "bold")).pack()
+        if config['title']:
+            Label(self,
+                  text=config['title'],
+                  bg=config['background'],
+                  fg=config['foreground'],
+                  font=("DejaVu Sans", config['titlefontsize'], "bold")).pack()
 
         self.temperature_label = Label(self,
                                        textvariable=self.temperatureValue,
@@ -155,6 +163,28 @@ class TemperatureWidget(HallonWidget):
     def handle_min_max_update(self, min_max):
         self.min_tempValue.set("{:.1f}°C".format(min_max[0]))
         self.max_tempValue.set("{:.1f}°C".format(min_max[1]))
+
+
+class DoorsWidget(HallonWidget):
+    def __init__(self, parent, config, workers):
+        HallonWidget.__init__(self, parent, workers)
+        self.config(bg=config['background'])
+        logger.warning(config.keys())
+        for door_config in config['doors']:
+            dc = {
+                'title': door_config['title'],
+                'door-id': door_config['door-id'],
+                'true_foreground': config['true_foreground'],
+                'fontsize': config['fontsize'],
+                'true_background': config['true_background'],
+                'false_foreground': config['false_foreground'],
+                'false_background': config['false_background'],
+                'true_foreground': config['true_foreground']
+            }
+            logger.info(f"Setting up door widget for {door_config['title']}")
+            w = DoorWidget(self, dc, workers)
+            w.pack(side=LEFT, padx=5);
+
 
 
 class DoorWidget(HallonWidget):
@@ -332,6 +362,140 @@ class Warnings(HallonWidget):
                   bg="#333",
                   fg="#f00",
                   font=("DejaVu Sans", 15, "bold")).pack()
+
+
+class RelayWidget(HallonWidget):
+    def __init__(self, parent, config, workers):
+        HallonWidget.__init__(self, parent, workers)
+
+        self.mode = 0
+        self.state = False
+
+        self.start_time = None
+        self.config(bg=config['background'])
+        # noinspection PyTypeChecker
+        self.teslatext = StringVar()
+        self.teslatext.set("TESLA")
+        self.teslabutton = Button(self,
+                             textvariable=self.teslatext,
+                             bg=config['background'],
+                             fg=config['foreground'],
+                             activebackground=config['background'],
+                             activeforeground=config['foreground'],
+                             font=("DejaVu Sans", config['fontsize'], "bold"),
+                             command=lambda: self.toggle_tesla(),
+                             pady=30,
+                             highlightthickness=0, bd=0)
+        self.teslabutton.pack(pady=30)
+
+        self.heatertext = StringVar()
+        self.heatertext.set("MOTORVÄRMARE")
+        self.heaterbutton = Button(self,
+                             textvariable=self.heatertext,
+                             bg=config['background'],
+                             fg=config['foreground'],
+                             activebackground=config['background'],
+                             activeforeground=config['foreground'],
+                             font=("DejaVu Sans", config['fontsize'], "bold"),
+                             command=lambda: self.toggle_heater(),
+                             pady=30,
+                             highlightthickness=0, bd=0)
+        self.heaterbutton.pack(pady=30)
+
+        self.paused = False
+        self.pause_minute = 0
+
+        worker: RelayWorker = self.get_worker('relay-worker')
+        worker.whenRelayReported.subscribe(lambda x: self.handle_update(x))
+
+        hour_power: CumulativePowerWorker = self.get_worker('cumulative-power-worker-hour')
+        hour_power.whenUsageReported.subscribe(lambda x: self.power_report(x))
+
+    def power_report(self, x):
+        now = datetime.datetime.now()
+        m = now.minute
+        l = 3.5
+        limit = l / 60 * m
+
+        logger.info(f"Limit: {limit} | Current: {x}")
+        if not self.paused and m < 15:
+            return
+
+        if x > limit:
+            if not self.paused:
+                self.pause(m)
+
+        else:
+            if x < limit * 1.1 and (m < self.pause_minute or m > self.pause_minute + 15):
+                self.unpause()
+
+    def unpause(self):
+        if self.mode > 0:
+            self.paused = False
+            self.pause_minute = 0
+            requests.get("http://relaythingy.local/start")
+
+    def pause(self, m):
+        bg = "#33f"
+        self.paused = True
+        self.pause_minute = m
+        requests.get("http://relaythingy.local/stop")
+
+
+    def handle_update(self, state):
+        self.state = state
+        logger.info(state)
+        bg = "#f33" if state else "#3f3"
+        pausebg = "#00f"
+
+        if self.paused:
+            logger.info(f"Pause mode {self.pause_minute}")
+            self.teslabutton.config(bg=pausebg, activebackground=pausebg)
+            self.heaterbutton.config(bg=pausebg, activebackground=pausebg)
+            return
+
+        if self.mode == 0:
+            self.teslabutton.config(bg=bg, activebackground=bg)
+            self.heaterbutton.config(bg=bg, activebackground=bg)
+        if self.mode == 1:
+            self.teslabutton.config(bg=bg, activebackground=bg)
+            pass
+        if self.mode == 2:
+            self.heaterbutton.config(bg=bg, activebackground=bg)
+
+    def toggle_tesla(self):
+        bg = "#3ff"
+        logger.info("tesla toggle")
+        self.heaterbutton["state"] = "disabled"
+        if self.state or self.paused:
+            self.mode = 0
+            self.paused = False
+            self.pause_minute = 0
+            logger.info("tesla off")
+            requests.get("http://relaythingy.local/stop")
+            self.heaterbutton["state"] = "normal"
+        else:
+            self.mode = 1
+            requests.get("http://relaythingy.local/start")
+            self.heaterbutton["state"] = "disabled"
+            self.heaterbutton.config(bg=bg, activebackground=bg)
+
+    def toggle_heater(self):
+        bg = "#3ff"
+        logger.info("heater toggle")
+        if self.state:
+            self.mode = 0
+            requests.get("http://relaythingy.local/stop")
+            self.teslabutton["state"] = "normal"
+        else:
+            self.mode = 2
+            requests.get("http://relaythingy.local/start")
+            self.teslabutton["state"] = "disabled"
+            self.teslabutton.config(bg=bg, activebackground=bg)
+
+
+
+
 
 
 

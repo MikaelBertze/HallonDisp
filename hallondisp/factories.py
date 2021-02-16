@@ -11,7 +11,8 @@ class WorkerFactory:
         'door-worker': DoorWorker,
         'lunch-worker': LunchWorker,
         "water-worker": WaterWorker,
-        'cumulative-water-worker': CumulativeWaterWorker
+        'cumulative-water-worker': CumulativeWaterWorker,
+        'relay-worker': RelayWorker
     }
 
     def __init__(self, worker_configs):
@@ -60,10 +61,11 @@ class WidgetFactory:
         'cumulative_power': CumulativePower,
         'temperature': TemperatureWidget,
         "timer": TimerWidget,
-        "door": DoorWidget,
+        "doors": DoorsWidget,
         "lunch": Lunch,
         "current_water": CurrentWater,
-        'cumulative_water': CumulativeWater
+        'cumulative_water': CumulativeWater,
+        'relay_buttons': RelayWidget
 
     }
 

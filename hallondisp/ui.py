@@ -11,10 +11,15 @@ class HallonPage(Frame):
         Frame.__init__(self, parent)
         self.when_page_displayed = Subject()
         self.config(bg="#333")
+        self.widgets = []
         for widget_config in page_config['widgets']:
             logger.info(f"Building widget: {widget_config['name']}")
             widget = widget_factory.build_widget(widget_config, self)
+            self.widgets.append(widget)
             widget.pack()
+
+    def is_sticky(self):
+        return any([x.sticky for x in self.widgets])
 
 
 class MainApp(Tk):
@@ -105,17 +110,22 @@ class MainApp(Tk):
         logger.info("Frame switch: " + str(pagenum))
         self.set_frame(pagenum)
 
-    def set_frame(self, num):
+    def set_frame(self, num, page_timeout=False):
         if self.page_timer is not None:
             self.after_cancel(self.page_timer)
-        logger.info(f"Setting frame to page: {num}")
-        assert num < len(self.pages), f"page {num} does not exist"
-        self.current_page = num
-        page = self.pages[self.current_page]
-        page.tkraise()
-        if num != 0:
+
+        sticky = page_timeout and self.pages[self.current_page].is_sticky()
+        if sticky:
+            logger.info("Ignoring timeout. Current page is sticky")
+        else:
+            logger.info(f"Setting frame to page: {num}")
+            assert num < len(self.pages), f"page {num} does not exist"
+            self.current_page = num
+            page = self.pages[self.current_page]
+            page.tkraise()
+        if sticky or num != 0:
             logger.info(f"Going back in {self.page_timeout} s")
-            self.page_timer = self.after(self.page_timeout * 1000, self.set_frame, 0)
+            self.page_timer = self.after(self.page_timeout * 1000, self.set_frame, 0, True)
 
 
 

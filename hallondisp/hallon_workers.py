@@ -55,21 +55,22 @@ class DoorWorker(HallonWorker):
         HallonWorker.__init__(self, config, workers, 120)
         self.whenDoorReported = Subject()
         broker = mqtt_utils.get_broker(config['mqtt']['broker'])
-        self.mqtt_updater = MqttListener(broker, config['mqtt']['topic'])
+        self.mqtt_updater = MqttListener(broker, config['mqtt']['topics'])
         self.mqtt_updater.OnMessage.subscribe(self.handle_update)
 
     def _init_worker(self):
         self.mqtt_updater.start()
 
     def watchdog_message(self):
-        return "Door not reported:" + self.mqtt_updater._topic
+        return "Door not reported:" + self.mqtt_updater._topics[0]
 
     def handle_update(self, msg):
         try:
             self.msg_count += 1
-            data = json.loads(msg)
+            data = json.loads(msg[1])
             logger.info(data)
-            self.whenDoorReported.on_next(data)
+            for x in data:
+                self.whenDoorReported.on_next(x)
 
         except Exception as ex:
             logger.error("Exception in mqtt thread: " + str(ex))
@@ -81,12 +82,12 @@ class PowerWorker(HallonWorker):
         self.whenPowerReported = Subject()
         self.whenNoPowerReported = Subject()
         broker = mqtt_utils.get_broker(config['mqtt']['broker'])
-        self.mqtt_updater = MqttListener(broker, config['mqtt']['topic'])
+        self.mqtt_updater = MqttListener(broker, [config['mqtt']['topic']])
 
         self.mqtt_updater.OnMessage.subscribe(self.handle_update)
 
     def watchdog_message(self):
-        return "Power not reported:" + self.mqtt_updater._topic
+        return "Power not reported:" + self.mqtt_updater._topics[0]
 
     def _init_worker(self):
         self.mqtt_updater.start()
@@ -95,7 +96,7 @@ class PowerWorker(HallonWorker):
         try:
             self.msg_count += 1
             # expected structure: tickPeriod:123|counter:5
-            data = json.loads(msg)
+            data = json.loads(msg[1])
             if "power_tick_period" in data:
                 tick_period = data['power_tick_period']
             else:
@@ -163,11 +164,11 @@ class WaterWorker(HallonWorker):
         self.whenWaterReported = Subject()
         self.whenNoWaterReported = Subject()
         broker = mqtt_utils.get_broker(config['mqtt']['broker'])
-        self.mqtt_updater = MqttListener(broker, config['mqtt']['topic'])
+        self.mqtt_updater = MqttListener(broker, [config['mqtt']['topic']])
         self.mqtt_updater.OnMessage.subscribe(self.handle_update)
 
     def watchdog_message(self):
-        return "Water not reported:" + self.mqtt_updater._topic
+        return "Water not reported:" + self.mqtt_updater._topics[0]
 
     def _init_worker(self):
         self.mqtt_updater.start()
@@ -176,7 +177,7 @@ class WaterWorker(HallonWorker):
         try:
             self.msg_count += 1
             # expected structure: tickPeriod:123|counter:5
-            data = json.loads(msg)
+            data = json.loads(msg[1])
             if "consumption" in data and "t_diff" in data:
                 consumption = data['consumption']
                 t_diff = data['t_diff']
@@ -243,7 +244,7 @@ class TemperatureWorker(HallonWorker):
         self.whenMinMaxModified = Subject()
         self.whenNoTemperatureReported = Subject()
         broker = mqtt_utils.get_broker(config['mqtt']['broker'])
-        self.mqtt_updater = MqttListener(broker, config['mqtt']['topic'])
+        self.mqtt_updater = MqttListener(broker, config['mqtt']['topics'])
         self.mqtt_updater.OnMessage.subscribe(self.handle_update)
         self.day = -1
         self.todayMinValue = 0
@@ -253,14 +254,19 @@ class TemperatureWorker(HallonWorker):
         self.mqtt_updater.start()
 
     def watchdog_message(self):
-        return "Temp not reported:" + self.mqtt_updater._topic
+        return "Temp not reported:" + self.mqtt_updater._topics[0]
 
     def handle_update(self, msg):
-        self.msg_count += 1
-        data = json.loads(msg)
-        sensor_id = data['id']
-        temp = float(data["temp"])
-        self.whenTemperatureReported.on_next({'sensor_id': sensor_id, 'temp': temp})
+        try:
+            logger.info(msg)
+            topic, msg = msg
+            self.msg_count += 1
+            data = json.loads(msg)
+            sensor_id = data['id']
+            temp = data["temp"]
+            self.whenTemperatureReported.on_next({'sensor_id': sensor_id, 'temp': temp})
+        except Exception as ex:
+            logger.error("Exception in mqtt thread: " + str(ex))
 
 
 class LunchWorker(HallonWorker):
@@ -306,3 +312,37 @@ class LunchWorker(HallonWorker):
         except Exception:
             return "Nada"
         return lunch
+
+
+class RelayWorker(HallonWorker):
+    def __init__(self, config, workers):
+        HallonWorker.__init__(self, config, workers, 120)
+        self.whenRelayReported = Subject()
+        broker = mqtt_utils.get_broker(config['mqtt']['broker'])
+        self.mqtt_updater = MqttListener(broker, [config['mqtt']['topic']])
+        self.mqtt_updater.OnMessage.subscribe(self.handle_update)
+
+    def watchdog_message(self):
+        return "Power not reported:" + self.mqtt_updater._topics[0]
+
+    def _init_worker(self):
+        self.mqtt_updater.start()
+
+    def handle_update(self, msg):
+        try:
+            self.msg_count += 1
+            # expected structure: tickPeriod:123|counter:5
+            logger.info(msg)
+
+            data = json.loads(msg[1])
+            if "state" in data:
+                state = True if data['state'] == "ON" else False
+                logger.info(f"STATE: {state}")
+                self.whenRelayReported.on_next(state)
+            else:
+                logger.info(f"Could not read power message {msg}")
+                return
+
+        except Exception as ex:
+            logger.error("Exception in mqtt thread: " + str(ex))
+

@@ -12,7 +12,23 @@
       "config": {
         "mqtt": {
           "broker": "default",
-          "topic": "/hallondisp/power"
+          "topic": "house/power"
+        }
+      }
+    },
+    "relay-worker": {
+      "source": {
+        "type": "built-in",
+        "name": "relay-worker"
+      },
+      "is-abstract": false,
+      "require-workers": [
+
+      ],
+      "config": {
+        "mqtt": {
+          "broker": "default",
+          "topic": "house/general/relaybox"
         }
       }
     },
@@ -25,7 +41,7 @@
       "config": {
         "mqtt": {
           "broker": "default",
-          "topic": "/hallondisp/water"
+          "topic": "house/water"
         }
       }
     },
@@ -95,7 +111,7 @@
       "config": {
         "mqtt": {
           "broker": "default",
-          "topic": "/hallondisp/temperature"
+          "topics": ["house/outdoor/temperature", "house/basement/temperature", "house/foodstore/temperature"]
         }
       }
     },
@@ -108,7 +124,7 @@
       "config": {
         "mqtt": {
           "broker": "default",
-          "topic": "/hallondisp/door"
+          "topics": ["house/garage/door", "house/basement/doors", "house/foodstore/doors"]
         }
       }
     },
@@ -232,6 +248,57 @@
         "titlefontsize": 30
       }
     },
+    "temperature-guestroom": {
+      "source": "built-in",
+      "type": "temperature",
+      "require_workers": [
+        {
+          "worker-name": "temperature-worker",
+          "worker-alias": "temperature-worker"
+        }
+      ],
+      "config": {
+        "sensor_id": "g_room",
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 60,
+        "titlefontsize": 30
+      }
+    },
+    "temperature-basement": {
+      "source": "built-in",
+      "type": "temperature",
+      "require_workers": [
+        {
+          "worker-name": "temperature-worker",
+          "worker-alias": "temperature-worker"
+        }
+      ],
+      "config": {
+        "sensor_id": "basement",
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 60,
+        "titlefontsize": 30
+      }
+    },
+    "temperature-foodstore": {
+      "source": "built-in",
+      "type": "temperature",
+      "require_workers": [
+        {
+          "worker-name": "temperature-worker",
+          "worker-alias": "temperature-worker"
+        }
+      ],
+      "config": {
+        "sensor_id": "foodstore",
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 60,
+        "titlefontsize": 30
+      }
+    },
     "local_time": {
       "source": "built-in",
       "type": "current_time",
@@ -254,20 +321,21 @@
         "duration": 0
       }
     },
-    "garage-door": {
+    "doors": {
       "source": "built-in",
-      "type": "door",
+      "type": "doors",
       "require_workers": [
         {
           "worker-name": "door-worker"
         }
       ],
       "config": {
+        "background": "#333",
         "true_background": "#333",
         "true_foreground": "#f00",
         "false_background": "#333",
         "false_foreground": "#0f0",
-        "fontsize": 40
+        "fontsize": 25
       }
     },
     "lunch": {
@@ -282,6 +350,23 @@
         "background": "#333",
         "foreground": "#fff",
         "titlefontsize" : 40,
+        "fontsize": 30
+      }
+    },
+    "relay_buttons": {
+      "source": "built-in",
+      "type": "relay_buttons",
+      "require_workers": [
+        {
+          "worker-name": "relay-worker"
+        },
+        {
+          "worker-name": "cumulative-power-worker-hour"
+        }
+      ],
+      "config": {
+        "background": "#333",
+        "foreground": "#fff",
         "fontsize": 30
       }
     }
@@ -302,14 +387,27 @@
         {
           "name": "temperature-outside",
           "config": {
-            "title": "Ute-temperatur"
+            "title": ""
           }
         },
         {
-          "name": "garage-door",
-          "config": {
-            "title": "Garageport",
-            "door-id": "garage"
+          "name": "doors",
+          "config":
+          {
+            "doors" : [
+              {
+                "title": "Garage",
+                "door-id": "garage"
+              },
+              {
+                "title": "Källare",
+                "door-id": "basement_1"
+              },
+              {
+                "title": "Matkällare",
+                "door-id": "foodstore"
+              }
+            ]
           }
         }
       ]
@@ -398,6 +496,41 @@
             "title": "Penne",
             "duration": 660,
             "tone": "starwars"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Temperatures page",
+      "widgets": [
+        {
+          "name": "temperature-outside",
+          "config": {
+            "title": "Ute"
+          }
+        },
+        {
+          "name": "temperature-basement",
+          "config": {
+            "title": "Källare"
+          }
+        },
+        {
+          "name": "temperature-foodstore",
+          "config": {
+            "title": "Matkällare"
+          }
+        }
+
+      ]
+    },
+    {
+      "name": "Relay page",
+      "widgets": [
+        {
+          "name": "relay_buttons",
+          "config": {
+            "title": "Test"
           }
         }
       ]

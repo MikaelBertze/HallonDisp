@@ -18,8 +18,8 @@ class HallonWidget(Frame):
 
 
     def get_worker(self, name):
-        for w in self.workers.keys():
-            logger.warning(w)
+        logger.info("Worker requested: " + name)
+        logger.info("Available workers " + "|".join([x for x in self.workers.keys()]))
         return self.workers[name]
 
 
@@ -231,9 +231,9 @@ class CurrentWater(HallonWidget):
 
     def handle_update(self, update):
         if (update > 10):
-            self.waterValue.set("{:.2f} l/m".format(update))
+            self.waterValue.set("{:.1f} l/m".format(update))
         else:
-            self.waterValue.set("{:.3f} l/m".format(update))
+            self.waterValue.set("{:.2f} l/m".format(update))
 
 
 class CumulativeWater(HallonWidget):
@@ -417,7 +417,6 @@ class RelayWidget(HallonWidget):
         l = 3.5
         limit = l / 60 * m
 
-        logger.info(f"Limit: {limit} | Current: {x}")
         if not self.paused and m < 15:
             return
 

@@ -68,7 +68,6 @@ class DoorWorker(HallonWorker):
         try:
             self.msg_count += 1
             data = json.loads(msg[1])
-            logger.info(data)
             for x in data:
                 self.whenDoorReported.on_next(x)
 
@@ -258,7 +257,6 @@ class TemperatureWorker(HallonWorker):
 
     def handle_update(self, msg):
         try:
-            logger.info(msg)
             topic, msg = msg
             self.msg_count += 1
             data = json.loads(msg)
@@ -286,6 +284,7 @@ class LunchWorker(HallonWorker):
             soup = BeautifulSoup(page.content, 'html.parser')
             x = soup.find('object')
             matsedel_url = x['data']
+            logger.info(f"Fetching lunch from {matsedel_url}")
 
             page = requests.get(matsedel_url)
             soup = BeautifulSoup(page.content, 'html.parser')
@@ -303,7 +302,7 @@ class LunchWorker(HallonWorker):
             timer.start()
 
     def get_lunch_for_date(self, date, soup):
-        months = ['jan', 'feb', 'mar', 'apr', 'maj', 'juni', 'juli', 'aug', 'sep', 'okt', 'nov', 'dec']
+        months = ['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec']
         day_s = f"{date.strftime('%d')} {months[date.month - 1]}"
         try:
             x = soup.find('div', string=day_s)
@@ -331,9 +330,6 @@ class RelayWorker(HallonWorker):
     def handle_update(self, msg):
         try:
             self.msg_count += 1
-            # expected structure: tickPeriod:123|counter:5
-            logger.info(msg)
-
             data = json.loads(msg[1])
             if "state" in data:
                 state = True if data['state'] == "ON" else False

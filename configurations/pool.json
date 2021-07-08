@@ -1,0 +1,90 @@
+{
+  "page-handler": {
+    "page-timeout": 120
+  },
+  "workers": {
+    "temperature-worker": {
+      "source": {
+        "type": "built-in",
+        "name": "temperature-worker"
+      },
+      "is-abstract": false,
+      "config": {
+        "mqtt": {
+          "broker": "default",
+          "topics": ["house/outdoor/temperature", "house/basement/temperature", "house/foodstore/temperature", "house/pool/temperature"]
+        }
+      }
+    }
+  },
+  "widgets": {
+    "temperature-outside": {
+      "source": "built-in",
+      "type": "temperature",
+      "require_workers": [
+        {
+          "worker-name": "temperature-worker",
+          "worker-alias": "temperature-worker"
+        }
+      ],
+      "config": {
+        "sensor_id": "garage",
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 80,
+        "titlefontsize": 30
+      }
+    },
+    "temperature-pool": {
+      "source": "built-in",
+      "type": "temperature",
+      "require_workers": [
+        {
+          "worker-name": "temperature-worker",
+          "worker-alias": "temperature-worker"
+        }
+      ],
+      "config": {
+        "sensor_id": "pool",
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 80,
+        "titlefontsize": 30
+      }
+    },
+    "local_time": {
+      "source": "built-in",
+      "type": "current_time",
+      "require_workers": [],
+      "config": {
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 50,
+        "time_format": ""
+      }
+    }
+  },
+  "pages": [
+    {
+      "name": "Main page",
+      "widgets": [
+        {
+          "name": "local_time"
+        },
+        {
+          "name": "temperature-outside",
+          "config": {
+            "title": "Utomhus"
+          }
+        },
+        {
+          "name": "temperature-pool",
+          "config": {
+            "title": "Pool"
+          }
+        }
+
+      ]
+    }
+  ]
+}

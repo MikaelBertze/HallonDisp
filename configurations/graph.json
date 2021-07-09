@@ -1,0 +1,556 @@
+{
+  "page-handler": {
+    "page-timeout": 120
+  },
+  "workers": {
+    "power-worker": {
+      "source": {
+        "type": "built-in",
+        "name": "power-worker"
+      },
+      "is-abstract": false,
+      "config": {
+        "mqtt": {
+          "broker": "default",
+          "topic": "house/power"
+        }
+      }
+    },
+    "relay-worker": {
+      "source": {
+        "type": "built-in",
+        "name": "relay-worker"
+      },
+      "is-abstract": false,
+      "require-workers": [
+
+      ],
+      "config": {
+        "mqtt": {
+          "broker": "default",
+          "topic": "house/general/relaybox"
+        }
+      }
+    },
+    "water-worker": {
+      "source": {
+        "type": "built-in",
+        "name": "water-worker"
+      },
+      "is-abstract": false,
+      "config": {
+        "mqtt": {
+          "broker": "default",
+          "topic": "house/water"
+        }
+      }
+    },
+    "cumulative-water-worker": {
+      "source": {
+        "type": "built-in",
+        "name": "cumulative-water-worker"
+      },
+      "is-abstract": true,
+      "require-workers": [
+        "water-worker"
+      ],
+      "config": {}
+    },
+    "cumulative-water-worker-hour": {
+      "extends": "cumulative-water-worker",
+      "is-abstract": false,
+      "config": {
+        "reset-mode": "hour"
+      }
+    },
+    "cumulative-water-worker-day": {
+      "extends": "cumulative-water-worker",
+      "is-abstract": false,
+      "config": {
+        "reset-mode": "day"
+      }
+    },
+    "cumulative-power-worker": {
+      "source": {
+        "type": "built-in",
+        "name": "cumulative-power-worker"
+      },
+      "is-abstract": true,
+      "require-workers": [
+        "power-worker"
+      ],
+      "config": {}
+    },
+    "cumulative-power-worker-minute": {
+      "extends": "cumulative-power-worker",
+      "is-abstract": false,
+      "config": {
+        "reset-mode": "minute"
+      }
+    },
+    "cumulative-power-worker-hour": {
+      "extends": "cumulative-power-worker",
+      "is-abstract": false,
+      "config": {
+        "reset-mode": "hour"
+      }
+    },
+    "cumulative-power-worker-day": {
+      "extends": "cumulative-power-worker",
+      "is-abstract": false,
+      "config": {
+        "reset-mode": "day"
+      }
+    },
+    "temperature-worker": {
+      "source": {
+        "type": "built-in",
+        "name": "temperature-worker"
+      },
+      "is-abstract": false,
+      "config": {
+        "mqtt": {
+          "broker": "default",
+          "topics": ["house/outdoor/temperature", "house/basement/temperature", "house/foodstore/temperature"]
+        }
+      }
+    },
+    "door-worker": {
+      "source": {
+        "type": "built-in",
+        "name": "door-worker"
+      },
+      "is-abstract": false,
+      "config": {
+        "mqtt": {
+          "broker": "default",
+          "topics": ["house/garage/door", "house/basement/doors", "house/foodstore/doors"]
+        }
+      }
+    },
+    "lunch-worker": {
+      "source": {
+        "type": "built-in",
+        "name": "lunch-worker"
+      },
+      "is-abstract": false,
+      "config": {
+      }
+    }
+  },
+  "widgets": {
+    "plot": {
+      "source": "built-in",
+      "type": "plot",
+      "require_workers": [
+      ],
+      "config": {
+
+      }
+    },
+    "current-water": {
+      "source": "built-in",
+      "type": "current_water",
+      "require_workers": [
+        {
+          "worker-name": "water-worker"
+        }
+      ],
+      "config": {
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 50
+      }
+    },
+    "cumulative-water-hour": {
+      "source": "built-in",
+      "type": "cumulative_water",
+      "require_workers": [
+        {
+          "worker-name": "cumulative-water-worker-hour",
+          "worker-alias": "cumulative-water-worker"
+        }
+      ],
+      "config": {
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 60,
+        "titlefontsize": 30
+      }
+    },
+    "cumulative-water-day": {
+      "source": "built-in",
+      "type": "cumulative_water",
+      "require_workers": [
+        {
+          "worker-name": "cumulative-water-worker-day",
+          "worker-alias": "cumulative-water-worker"
+        }
+      ],
+      "config": {
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 60,
+        "titlefontsize": 30
+      }
+    },
+    "nominal-power": {
+      "source": "built-in",
+      "type": "nominal_power",
+      "require_workers": [
+        {
+          "worker-name": "power-worker"
+        }
+      ],
+      "config": {
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 70
+      }
+    },
+    "cumulative-power-hour": {
+      "source": "built-in",
+      "type": "cumulative_power",
+      "require_workers": [
+        {
+          "worker-name": "cumulative-power-worker-hour",
+          "worker-alias": "cumulative-power-worker"
+        }
+      ],
+      "config": {
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 60,
+        "titlefontsize": 30
+      }
+    },
+    "cumulative-power-day": {
+      "source": "built-in",
+      "type": "cumulative_power",
+      "require_workers": [
+        {
+          "worker-name": "cumulative-power-worker-day",
+          "worker-alias": "cumulative-power-worker"
+        }
+      ],
+      "config": {
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 60,
+        "titlefontsize": 30
+      }
+    },
+    "temperature-outside": {
+      "source": "built-in",
+      "type": "temperature",
+      "require_workers": [
+        {
+          "worker-name": "temperature-worker",
+          "worker-alias": "temperature-worker"
+        }
+      ],
+      "config": {
+        "sensor_id": "garage",
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 60,
+        "titlefontsize": 30
+      }
+    },
+    "temperature-guestroom": {
+      "source": "built-in",
+      "type": "temperature",
+      "require_workers": [
+        {
+          "worker-name": "temperature-worker",
+          "worker-alias": "temperature-worker"
+        }
+      ],
+      "config": {
+        "sensor_id": "g_room",
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 60,
+        "titlefontsize": 30
+      }
+    },
+    "temperature-basement": {
+      "source": "built-in",
+      "type": "temperature",
+      "require_workers": [
+        {
+          "worker-name": "temperature-worker",
+          "worker-alias": "temperature-worker"
+        }
+      ],
+      "config": {
+        "sensor_id": "basement",
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 60,
+        "titlefontsize": 30
+      }
+    },
+    "temperature-foodstore": {
+      "source": "built-in",
+      "type": "temperature",
+      "require_workers": [
+        {
+          "worker-name": "temperature-worker",
+          "worker-alias": "temperature-worker"
+        }
+      ],
+      "config": {
+        "sensor_id": "foodstore",
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 60,
+        "titlefontsize": 30
+      }
+    },
+    "local_time": {
+      "source": "built-in",
+      "type": "current_time",
+      "require_workers": [],
+      "config": {
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 50,
+        "time_format": ""
+      }
+    },
+    "timer": {
+      "source": "built-in",
+      "type": "timer",
+      "require_workers": [],
+      "config": {
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 30,
+        "duration": 0
+      }
+    },
+    "doors": {
+      "source": "built-in",
+      "type": "doors",
+      "require_workers": [
+        {
+          "worker-name": "door-worker"
+        }
+      ],
+      "config": {
+        "background": "#333",
+        "true_background": "#333",
+        "true_foreground": "#f00",
+        "false_background": "#333",
+        "false_foreground": "#0f0",
+        "fontsize": 25
+      }
+    },
+    "lunch": {
+      "source": "built-in",
+      "type": "lunch",
+      "require_workers": [
+        {
+          "worker-name": "lunch-worker"
+        }
+      ],
+      "config": {
+        "background": "#333",
+        "foreground": "#fff",
+        "titlefontsize" : 40,
+        "fontsize": 30
+      }
+    },
+    "relay_buttons": {
+      "source": "built-in",
+      "type": "relay_buttons",
+      "require_workers": [
+        {
+          "worker-name": "relay-worker"
+        },
+        {
+          "worker-name": "cumulative-power-worker-hour"
+        }
+      ],
+      "config": {
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 30
+      }
+    }
+  },
+  "pages": [
+    {
+      "name": "Test",
+      "widgets": [
+        {
+          "name": "plot"
+        }
+      ]
+    },
+    {
+      "name": "Main page",
+      "widgets": [
+        {
+          "name": "local_time"
+        },
+        {
+          "name": "nominal-power"
+        },
+        {
+          "name": "current-water"
+        },
+        {
+          "name": "temperature-outside",
+          "config": {
+            "title": ""
+          }
+        },
+        {
+          "name": "doors",
+          "config":
+          {
+            "doors" : [
+              {
+                "title": "Garage",
+                "door-id": "garage"
+              },
+              {
+                "title": "Källare",
+                "door-id": "basement_1"
+              },
+              {
+                "title": "Matkällare",
+                "door-id": "foodstore"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Lunch page",
+      "widgets": [
+        {
+          "name": "local_time"
+        },
+        {
+          "name": "lunch"
+        }
+      ]
+    },
+    {
+      "name": "Power page",
+      "widgets": [
+        {
+          "name": "nominal-power"
+        },
+        {
+          "name": "cumulative-power-hour",
+          "config": {
+            "title": "Timmens förbrukning"
+          }
+        },
+        {
+          "name": "cumulative-power-day",
+          "config": {
+            "title": "Dagens förbrukning"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Water page",
+      "widgets": [
+        {
+          "name": "current-water"
+        },
+        {
+          "name": "cumulative-water-hour",
+          "config": {
+            "title": "Timmens förbrukning"
+          }
+        },
+        {
+          "name": "cumulative-water-day",
+          "config": {
+            "title": "Dagens förbrukning"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Timer page",
+      "widgets": [
+        {
+          "name": "timer",
+          "config": {
+            "title": "Test",
+            "duration": 5,
+            "tone": "starwars"
+          }
+        },
+        {
+          "name": "timer",
+          "config": {
+            "title": "Koka ägg",
+            "duration": 405,
+            "tone": "starwars"
+          }
+        },
+        {
+          "name": "timer",
+          "config": {
+            "title": "Baka bröd",
+            "duration": 600,
+            "tone": "starwars"
+          }
+        },
+        {
+          "name": "timer",
+          "config": {
+            "title": "Penne",
+            "duration": 660,
+            "tone": "starwars"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Temperatures page",
+      "widgets": [
+        {
+          "name": "temperature-outside",
+          "config": {
+            "title": "Ute"
+          }
+        },
+        {
+          "name": "temperature-basement",
+          "config": {
+            "title": "Källare"
+          }
+        },
+        {
+          "name": "temperature-foodstore",
+          "config": {
+            "title": "Matkällare"
+          }
+        }
+
+      ]
+    },
+    {
+      "name": "Relay page",
+      "widgets": [
+        {
+          "name": "relay_buttons",
+          "config": {
+            "title": "Test"
+          }
+        }
+      ]
+    }
+  ]
+}

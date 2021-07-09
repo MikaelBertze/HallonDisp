@@ -190,7 +190,8 @@ class WaterWorker(HallonWorker):
             self.whenWaterReported.on_next(data)
 
         except Exception as ex:
-            logger.error("Exception in mqtt thread: " + str(ex))
+            logger.error(msg)
+            logger.error("Exception in mqtt thread (water worker): " + str(ex))
 
 
 class CumulativeWaterWorker(HallonWorker):
@@ -277,6 +278,7 @@ class LunchWorker(HallonWorker):
         self.update()
 
     def update(self):
+        return
         try:
             # Find url for 'matsedel'
             url = 'http://skola.karlstad.se/hultsbergsskolan4a/matsedel/'

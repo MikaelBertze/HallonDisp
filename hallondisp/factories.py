@@ -65,7 +65,8 @@ class WidgetFactory:
         "lunch": Lunch,
         "current_water": CurrentWater,
         'cumulative_water': CumulativeWater,
-        'relay_buttons': RelayWidget
+        'relay_buttons': RelayWidget,
+        'plot': PlotWidget,
 
     }
 

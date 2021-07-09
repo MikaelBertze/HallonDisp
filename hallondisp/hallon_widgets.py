@@ -9,6 +9,8 @@ from hallondisp.hallon_workers import PowerWorker, CumulativePowerWorker, Temper
 from hallondisp.utils import sound_player
 import requests
 
+from hallondisp.utils.graph import Graph
+
 
 class HallonWidget(Frame):
     def __init__(self, parent, workers):
@@ -22,6 +24,12 @@ class HallonWidget(Frame):
         logger.info("Available workers " + "|".join([x for x in self.workers.keys()]))
         return self.workers[name]
 
+class PlotWidget(HallonWidget):
+    def __init__(self, parent, config, workers):
+        HallonWidget.__init__(self, parent, workers)
+        self.plot = Graph(300, 500, self)
+        self.plot.plot([1,2,3], [1,2,3])
+        self.plot.pack()
 
 class CurrentTimeWidget(HallonWidget):
     def __init__(self, parent, config, workers):

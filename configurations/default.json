@@ -111,7 +111,7 @@
       "config": {
         "mqtt": {
           "broker": "default",
-          "topics": ["house/outdoor/temperature", "house/basement/temperature", "house/foodstore/temperature"]
+          "topics": ["house/outdoor/temperature", "house/basement/temperature", "house/foodstore/temperature", "house/pool/temperature"]
         }
       }
     },
@@ -244,7 +244,24 @@
         "sensor_id": "garage",
         "background": "#333",
         "foreground": "#fff",
-        "fontsize": 60,
+        "fontsize": 50,
+        "titlefontsize": 30
+      }
+    },
+    "temperature-pool": {
+      "source": "built-in",
+      "type": "temperature",
+      "require_workers": [
+        {
+          "worker-name": "temperature-worker",
+          "worker-alias": "temperature-worker"
+        }
+      ],
+      "config": {
+        "sensor_id": "pool",
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 50,
         "titlefontsize": 30
       }
     },
@@ -261,7 +278,7 @@
         "sensor_id": "g_room",
         "background": "#333",
         "foreground": "#fff",
-        "fontsize": 60,
+        "fontsize": 50,
         "titlefontsize": 30
       }
     },
@@ -278,7 +295,7 @@
         "sensor_id": "basement",
         "background": "#333",
         "foreground": "#fff",
-        "fontsize": 60,
+        "fontsize": 50,
         "titlefontsize": 30
       }
     },
@@ -295,7 +312,7 @@
         "sensor_id": "foodstore",
         "background": "#333",
         "foreground": "#fff",
-        "fontsize": 60,
+        "fontsize": 50,
         "titlefontsize": 30
       }
     },
@@ -376,22 +393,27 @@
       "name": "Main page",
       "widgets": [
         {
-          "name": "local_time"
+          "name": "local_time",
+          "cell": 0
         },
         {
-          "name": "nominal-power"
+          "name": "nominal-power",
+          "cell": 0
         },
         {
-          "name": "current-water"
+          "name": "current-water",
+          "cell": 0
         },
         {
           "name": "temperature-outside",
+          "cell": 0,
           "config": {
             "title": ""
           }
         },
         {
           "name": "doors",
+          "cell": 0,
           "config":
           {
             "doors" : [
@@ -505,23 +527,32 @@
       "widgets": [
         {
           "name": "temperature-outside",
+          "cell": 0,
           "config": {
             "title": "Ute"
           }
         },
         {
+          "name": "temperature-pool",
+          "cell": 0,
+          "config": {
+            "title": "Pool"
+          }
+        },
+        {
           "name": "temperature-basement",
+          "cell": 1,
           "config": {
             "title": "Källare"
           }
         },
         {
           "name": "temperature-foodstore",
+          "cell": 1,
           "config": {
             "title": "Matkällare"
           }
         }
-
       ]
     },
     {

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 from loguru import logger
-from tkinter import Tk, Button, Frame, PhotoImage
+from tkinter import Tk, Button, Frame, PhotoImage, X
 from rx.subject import Subject
 from hallondisp.factories import WidgetFactory, WorkerFactory, HallonWorker, Warnings
 
@@ -12,11 +12,27 @@ class HallonPage(Frame):
         self.when_page_displayed = Subject()
         self.config(bg="#333")
         self.widgets = []
+        col = {}
+
+
         for widget_config in page_config['widgets']:
             logger.info(f"Building widget: {widget_config['name']}")
-            widget = widget_factory.build_widget(widget_config, self)
+            if 'cell' not in widget_config:
+                cell = 0
+            else:
+                cell = widget_config['cell']
+
+            if cell not in col:
+                col[cell] = Frame(self, bg="#333")
+
+            widget = widget_factory.build_widget(widget_config, col[cell])
             self.widgets.append(widget)
             widget.pack()
+        if len(col) == 1:
+            col[0].pack(side="top", fill="x")
+        else:
+            col[0].pack(side="left", fill="y")
+            col[1].pack(side="right", fill="y")
 
     def is_sticky(self):
         return any([x.sticky for x in self.widgets])

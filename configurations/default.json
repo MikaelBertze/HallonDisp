@@ -111,7 +111,7 @@
       "config": {
         "mqtt": {
           "broker": "default",
-          "topics": ["house/outdoor/temperature", "house/basement/temperature", "house/foodstore/temperature", "house/pool/temperature"]
+          "topics": ["house/outdoor/temperature", "house/basement/temperature", "house/foodstore/temperature", "house/pool/temperature", "house/greenhouse/temperature"]
         }
       }
     },
@@ -259,6 +259,23 @@
       ],
       "config": {
         "sensor_id": "pool",
+        "background": "#333",
+        "foreground": "#fff",
+        "fontsize": 50,
+        "titlefontsize": 30
+      }
+    },
+    "temperature-greenhouse": {
+      "source": "built-in",
+      "type": "temperature",
+      "require_workers": [
+        {
+          "worker-name": "temperature-worker",
+          "worker-alias": "temperature-worker"
+        }
+      ],
+      "config": {
+        "sensor_id": "greenhouse",
         "background": "#333",
         "foreground": "#fff",
         "fontsize": 50,
@@ -537,6 +554,13 @@
           "cell": 0,
           "config": {
             "title": "Pool"
+          }
+        },
+        {
+          "name": "temperature-greenhouse",
+          "cell": 0,
+          "config": {
+            "title": "Växthus"
           }
         },
         {

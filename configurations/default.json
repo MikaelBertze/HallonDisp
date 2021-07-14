@@ -111,7 +111,7 @@
       "config": {
         "mqtt": {
           "broker": "default",
-          "topics": ["house/outdoor/temperature", "house/basement/temperature", "house/foodstore/temperature", "house/pool/temperature", "house/greenhouse/temperature"]
+          "topics": ["house/inside/temperature", "house/outdoor/temperature", "house/basement/temperature", "house/foodstore/temperature", "house/pool/temperature", "house/greenhouse/temperature"]
         }
       }
     },
@@ -282,7 +282,7 @@
         "titlefontsize": 30
       }
     },
-    "temperature-guestroom": {
+    "temperature-inside": {
       "source": "built-in",
       "type": "temperature",
       "require_workers": [
@@ -292,7 +292,7 @@
         }
       ],
       "config": {
-        "sensor_id": "g_room",
+        "sensor_id": "inside",
         "background": "#333",
         "foreground": "#fff",
         "fontsize": 50,
@@ -561,6 +561,13 @@
           "cell": 0,
           "config": {
             "title": "Växthus"
+          }
+        },
+	{
+          "name": "temperature-inside",
+          "cell": 1,
+          "config": {
+            "title": "Innomhus"
           }
         },
         {
